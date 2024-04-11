@@ -356,6 +356,8 @@ public:
         k_param_acro_yaw_rate,
         k_param_takeoff_throttle_max_t,
         k_param_autotune_options,
+
+        k_param_indi_rate_controller,
     };
 
     AP_Int16 format_version;
@@ -573,6 +575,45 @@ public:
     AP_Int32        oneshot_mask;
     
     AP_Int8         axis_bitmask; // axes to be autotuned
+
+    // moment of Inertia
+    AP_Float moI_x; // I_x
+    AP_Float moI_y; // I_y
+    AP_Float moI_z; // I_z
+    AP_Float moI_xz; // I_xz
+
+    // moment coefficents by control surface deflections
+    AP_Float mc_l_a;
+    AP_Float mc_l_r;
+    AP_Float mc_m_e;
+    AP_Float mc_n_a;
+    AP_Float mc_n_r;
+
+    // shape of plane
+    AP_Float wing_area; // S
+    AP_Float wing_span; // b
+    AP_Float wing_chord; // c_bar
+
+    // INDI rate controller gains
+    AP_Float roll_rate_indi_k;
+    AP_Float pitch_rate_indi_k;
+    AP_Float yaw_rate_indi_k;
+
+    // NDI attitude controller gains
+    AP_Float roll_att_ndi_k;
+    AP_Float pitch_att_ndi_k;
+    AP_Float yaw_att_ndi_k;
+
+    // INDI kalman filter
+    AP_Float roll_indi_kf_Q;
+    AP_Float pitch_indi_kf_Q;
+    AP_Float yaw_indi_kf_Q;
+    AP_Float roll_indi_kf_R;
+    AP_Float pitch_indi_kf_R;
+    AP_Float yaw_indi_kf_R;
+
+    // RC switch for PID and custom controller
+    AP_Int8 custom_ctrl_rc_switch;
 
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;

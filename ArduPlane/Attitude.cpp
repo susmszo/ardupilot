@@ -1,5 +1,64 @@
 #include "Plane.h"
 
+// update custom plane shape parameters
+void Plane::plane_shape_update()
+{
+    plane_shape.I_x = g2.moI_x;
+    plane_shape.I_y = g2.moI_y;
+    plane_shape.I_z = g2.moI_z;
+    plane_shape.I_xz = g2.moI_xz;
+    plane_shape.C_l_a = g2.mc_l_a;
+    plane_shape.C_l_r = g2.mc_l_r;
+    plane_shape.C_m_e = g2.mc_m_e;
+    plane_shape.C_n_a = g2.mc_n_a;
+    plane_shape.C_n_r = g2.mc_n_r;
+}
+
+// update INDI kf parameters
+void Plane::INDI_kf_param_update()
+{
+    indi_kf_params.Q_roll = g2.roll_indi_kf_Q;
+    indi_kf_params.R_roll = g2.roll_indi_kf_R;
+    indi_kf_params.Q_pitch = g2.pitch_indi_kf_Q;
+    indi_kf_params.R_pitch = g2.pitch_indi_kf_R;
+    indi_kf_params.Q_yaw = g2.yaw_indi_kf_Q;
+    indi_kf_params.R_yaw = g2.yaw_indi_kf_R;
+}
+
+// update INDI gains
+void Plane::INDI_gain_update()
+{
+    indi_gains = Matrix3f(g2.roll_rate_indi_k, 0, 0, 0, g2.pitch_rate_indi_k, 0, 0, 0, g2.yaw_rate_indi_k);
+}
+
+// update NDI gains
+void Plane::NDI_gain_update()
+{
+    ndi_gains = Matrix3f(g2.roll_att_ndi_k, 0, 0, 0, g2.pitch_att_ndi_k, 0, 0, 0, g2.yaw_att_ndi_k);
+}
+
+// controller switch upon RC
+void Plane::custom_control_switch()
+{
+    int8_t channel = g2.custom_ctrl_rc_switch;
+    pos = rc().channel(channel)->get_aux_switch_pos();
+    uint8_t flag = 0;
+    // HIGH   : NDI + INDI
+    // MIDDLE : P + INDI
+    // LOW    : P + PID
+    // PID to INDI, flag = 0010; INDI to PID, flag = 0100; no change, flag = 0001
+    if ((pos_pre == RC_Channel::AuxSwitchPos::LOW) && (pos == RC_Channel::AuxSwitchPos::MIDDLE || pos == RC_Channel::AuxSwitchPos::HIGH))
+    {
+        flag |= (1U << 1);
+    } else if ((pos == RC_Channel::AuxSwitchPos::LOW) && (pos_pre == RC_Channel::AuxSwitchPos::MIDDLE || pos_pre == RC_Channel::AuxSwitchPos::HIGH)) {
+        flag |= (1U << 2);
+    } else {
+        flag |= (1U << 0);
+    }
+    custom_ctrl_sw_flag = flag;
+    pos_pre = pos;
+}
+
 /*
   calculate speed scaling number for control surfaces. This is applied
   to PIDs to change the scaling of the PID with speed. At high speed
@@ -209,7 +268,7 @@ float Plane::stabilize_pitch_get_pitch_out()
     const bool quadplane_in_transition = false;
 #endif
 
-    int32_t demanded_pitch = nav_pitch_cd + int32_t(g.pitch_trim * 100.0) + SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * g.kff_throttle_to_pitch;
+    demanded_pitch = nav_pitch_cd + int32_t(g.pitch_trim * 100.0) + SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * g.kff_throttle_to_pitch;
     bool disable_integrator = false;
     if (control_mode == &mode_stabilize && channel_pitch->get_control_in() != 0) {
         disable_integrator = true;
@@ -228,7 +287,8 @@ float Plane::stabilize_pitch_get_pitch_out()
     }
 
     return pitchController.get_servo_out(demanded_pitch - ahrs.pitch_sensor, speed_scaler, disable_integrator,
-                                         ground_mode && !(plane.flight_option_enabled(FlightOptions::DISABLE_GROUND_PID_SUPPRESSION)));
+                                         ground_mode && !(plane.flight_option_enabled(FlightOptions::DISABLE_GROUND_PID_SUPPRESSION)),
+                                         indi_gains, plane_shape, indi_kf_params, pos, custom_ctrl_sw_flag);
 }
 
 /*

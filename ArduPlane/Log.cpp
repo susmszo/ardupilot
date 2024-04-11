@@ -46,6 +46,8 @@ void Plane::Log_Write_Attitude(void)
     logger.Write_PID(LOG_PIDR_MSG, rollController.get_pid_info());
     logger.Write_PID(LOG_PIDP_MSG, pitchController.get_pid_info());
 
+    logger.Write_INDI(LOG_INDIP_MSG, pitchController.get_indi_info());
+
     if (yawController.enabled()) {
         logger.Write_PID(LOG_PIDY_MSG, yawController.get_pid_info());
     }

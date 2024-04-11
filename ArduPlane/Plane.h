@@ -48,6 +48,7 @@
 
 #include <AP_AdvancedFailsafe/AP_AdvancedFailsafe.h>
 #include <APM_Control/APM_Control.h>
+#include <AP_INDI/AP_INDI.h>
 #include <APM_Control/AP_AutoTune.h>
 #include <GCS_MAVLink/GCS_MAVLink.h>    // MAVLink GCS definitions
 #include <AP_Mount/AP_Mount.h>           // Camera/Antenna mount
@@ -219,6 +220,18 @@ private:
     AP_PitchController pitchController{aparm};
     AP_YawController yawController{aparm};
     AP_SteerController steerController{};
+
+    // custom plane shape parameters
+    AP_Plane_Shape plane_shape;
+
+    INDI_KF_Params indi_kf_params;
+    Matrix3f indi_gains;
+    Matrix3f ndi_gains;
+
+    // custom controller switch flag, bitmask
+    uint8_t custom_ctrl_sw_flag;
+    RC_Channel::AuxSwitchPos pos;
+    RC_Channel::AuxSwitchPos pos_pre;
 
     // Training mode
     bool training_manual_roll;  // user has manual roll control
@@ -625,6 +638,12 @@ private:
     // The instantaneous desired pitch angle.  Hundredths of a degree
     int32_t nav_pitch_cd;
 
+    // pitch angle sent into controller 
+    int32_t demanded_pitch;
+
+    // yaw angle sent into controller
+    int32_t demanded_yaw;
+
     // the aerodynamic load factor. This is calculated from the demanded
     // roll before the roll is clipped, using 1/sqrt(cos(nav_roll))
     float aerodynamic_load_factor = 1.0f;
@@ -890,6 +909,11 @@ private:
     int16_t calc_nav_yaw_coordinated();
     int16_t calc_nav_yaw_course(void);
     int16_t calc_nav_yaw_ground(void);
+    void plane_shape_update();
+    void custom_control_switch();
+    void INDI_kf_param_update();
+    void INDI_gain_update();
+    void NDI_gain_update();
 
 #if HAL_LOGGING_ENABLED
 

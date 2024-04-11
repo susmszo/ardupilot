@@ -13,6 +13,7 @@
 #include <RC_Channel/RC_Channel.h>
 #include <SRV_Channel/SRV_Channel.h>
 #include <AC_PID/AP_PIDInfo.h>
+#include <AP_INDI/AP_INDIInfo.h>
 
 #include "AP_Logger.h"
 #include "AP_Logger_File.h"
@@ -509,6 +510,34 @@ void AP_Logger::Write_PID(uint8_t msg_type, const AP_PIDInfo &info)
         DFF             : info.DFF,
         Dmod            : info.Dmod,
         slew_rate       : info.slew_rate,
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+// usrdefine: INDI packet
+void AP_Logger::Write_INDI(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_INDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+    };
+
+    uint8_t flags = 0;
+    if (info.reset) {
+        flags |= (uint8_t)log_INDI_Flags::RESET;
+    }
+
+    int index = info.index;
+
+    const struct log_INDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.target[index-1],
+        actual          : info.actual[index-1],
+        error           : info.error[index-1],
+        rate_hat        : info.kf_update_vars.X_hat[0],
+        acc_hat         : info.kf_update_vars.X_hat[1],
+        delta_inc       : info.delta_inc,
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));
