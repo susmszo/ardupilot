@@ -276,25 +276,20 @@ float AP_PitchController::_get_rate_out_INDI(float desired_rate, float scaler, b
     const float dt = AP::scheduler().get_loop_period_s();
 
     const AP_AHRS &_ahrs = AP::ahrs();
-
-    const float eas2tas = _ahrs.get_EAS2TAS();
     
-    float rate_y = _ahrs.get_gyro().y;
     Vector3f rate = _ahrs.get_gyro();
 
     Vector3f desired_rate_indi = Vector3f(0, desired_rate, 0);
 
-    rate_indi.update_all(desired_rate_indi, rate, dt, indi_gains, indi_kf_params, SSL_AIR_DENSITY, aspeed, plane_shape, _ahrs);
+    float delta_inc = rate_indi.update_all(desired_rate_indi, rate, dt, indi_gains, indi_kf_params, SSL_AIR_DENSITY, aspeed, plane_shape, _ahrs);
 
-    // convert AC_PID info object to same scale as old controller
     _indi_info = rate_indi.get_indi_info();
     auto &indiinfo = _indi_info;
 
     const float deg_scale = degrees(1);
     indiinfo.delta_inc *= deg_scale;
 
-    // output is scaled to notional centidegrees of deflection
-    return constrain_float(out * 100, -4500, 4500);
+    return delta_inc;
 }
 
 /*

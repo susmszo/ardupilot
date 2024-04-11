@@ -115,16 +115,14 @@ float AP_INDI::update_all(Vector3f target, Vector3f measurement, float dt, Matri
         _b = plane_shape.b;
         _c = plane_shape.c;
     } else {
-        Vector3f error_last = _error;
         Vector3f target_last = _target;
-        Vector3f measurement_last = _measurement;
+        // Vector3f measurement_last = _measurement;
         Vector3f error = _target - measurement;
         _target += (target - _target) * get_filt_T_alpha(dt);
         _error += (error - _error) * get_filt_E_alpha(dt);
         _measurement = measurement;
         // calculate and filter derivative
         if (is_positive(dt)) {
-            Vector3f derivative = (_error - error_last) / dt;
             _target_derivative = (_target - target_last) / dt;
             // _meas_derivative = (_measurement - measurement_last) / dt;
         }

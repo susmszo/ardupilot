@@ -1,5 +1,10 @@
 #pragma once
 
+struct KF_Update_Vars {
+    Matrix3f P_cov; 
+    Vector3f X_hat;
+};
+
 struct AP_INDIInfo {
     int index;
 
@@ -10,11 +15,6 @@ struct AP_INDIInfo {
     KF_Update_Vars kf_update_vars;
     
     bool reset;
-};
-
-struct KF_Update_Vars {
-    Matrix3f P_cov; 
-    Vector3f X_hat;
 };
 
 struct AP_Plane_Shape {
