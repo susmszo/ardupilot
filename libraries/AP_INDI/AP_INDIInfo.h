@@ -6,18 +6,30 @@ struct KF_Update_Vars {
 };
 
 struct AP_INDIInfo {
-    int index;
+    Vector3f angle_target;
+    Vector3f angle_actual;
+    Vector3f angle_error; 
+    Vector3f rate_control;
 
-    Vector3f target;
-    Vector3f actual;
-    Vector3f error;
-    float delta_inc;
-    KF_Update_Vars kf_update_vars;
+    Vector3f rate_target;
+    Vector3f rate_actual;
+    Vector3f rate_error; 
+    Vector3f rate_target_derivative;
+    Vector3f rate_meas_derivative_direct;
+    Vector3f v;
+    Vector3f v_;
+    Vector3f delta_inc;
+    Vector3f delta;
+
+    KF_Update_Vars roll_kf_vars;
+    KF_Update_Vars pitch_kf_vars;
+    KF_Update_Vars yaw_kf_vars;
     
+    bool inverse_N;
     bool reset;
 };
 
-struct AP_Plane_Shape {
+struct Plane_Shape {
     float I_x;
     float I_y;
     float I_z;
@@ -30,13 +42,4 @@ struct AP_Plane_Shape {
     float S;
     float b;
     float c;
-}Plane_Shape;
-
-struct INDI_KF_Params {
-    float Q_roll;
-    float R_roll;
-    float Q_pitch;
-    float R_pitch;
-    float Q_yaw;
-    float R_yaw;
 };

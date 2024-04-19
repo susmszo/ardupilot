@@ -157,32 +157,6 @@ const AP_Param::GroupInfo AP_PitchController::var_info[] = {
     // @User: Advanced
 
     AP_SUBGROUPINFO(rate_pid, "_RATE_", 11, AP_PitchController, AC_PID),
-    
-    // @Param: _INDI_FLTT
-    // @DisplayName: INDI Pitch axis rate controller target frequency in Hz
-    // @Description: INDI Pitch axis rate controller target frequency in Hz
-    // @Range: 2 50
-    // @Increment: 1
-    // @Units: Hz
-    // @User: Standard
-
-    // @Param: _INDI_FLTE
-    // @DisplayName: INDI Pitch axis rate controller error frequency in Hz
-    // @Description: INDI Pitch axis rate controller error frequency in Hz
-    // @Range: 2 50
-    // @Increment: 1
-    // @Units: Hz
-    // @User: Standard
-
-    // @Param: _INDI_FLTD
-    // @DisplayName: INDI Pitch axis rate controller derivative frequency in Hz
-    // @Description: INDI Pitch axis rate controller derivative frequency in Hz
-    // @Range: 0 50
-    // @Increment: 1
-    // @Units: Hz
-    // @User: Standard
-
-    AP_SUBGROUPINFO(rate_indi, "_INDI_", 12, AP_PitchController, AP_INDI),
 
     AP_GROUPEND
 };
@@ -269,29 +243,6 @@ float AP_PitchController::_get_rate_out(float desired_rate, float scaler, bool d
     return constrain_float(out * 100, -4500, 4500);
 }
 
-// INDI rate controller
-float AP_PitchController::_get_rate_out_INDI(float desired_rate, float scaler, bool disable_integrator, float aspeed, bool ground_mode,
-                                             Matrix3f &indi_gains, AP_Plane_Shape &plane_shape, INDI_KF_Params &indi_kf_params)
-{
-    const float dt = AP::scheduler().get_loop_period_s();
-
-    const AP_AHRS &_ahrs = AP::ahrs();
-    
-    Vector3f rate = _ahrs.get_gyro();
-
-    Vector3f desired_rate_indi = Vector3f(0, desired_rate, 0);
-
-    float delta_inc = rate_indi.update_all(desired_rate_indi, rate, dt, indi_gains, indi_kf_params, SSL_AIR_DENSITY, aspeed, plane_shape, _ahrs);
-
-    _indi_info = rate_indi.get_indi_info();
-    auto &indiinfo = _indi_info;
-
-    const float deg_scale = degrees(1);
-    indiinfo.delta_inc *= deg_scale;
-
-    return delta_inc;
-}
-
 /*
  Function returns an equivalent elevator deflection in centi-degrees in the range from -4500 to 4500
  A positive demand is up
@@ -362,8 +313,7 @@ float AP_PitchController::_get_coordination_rate_offset(float &aspeed, bool &inv
 // 4) minimum FBW airspeed (metres/sec)
 // 5) maximum FBW airspeed (metres/sec)
 //
-float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode, Matrix3f &indi_gains, 
-                                        AP_Plane_Shape &plane_shape, INDI_KF_Params &indi_kf_params, RC_Channel::AuxSwitchPos &sw_pos ,uint8_t &flag)
+float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool disable_integrator, bool ground_mode)
 {
     // Calculate offset to pitch rate demand required to maintain pitch angle whilst banking
     // Calculate ideal turn rate from bank angle and airspeed assuming a level coordinated turn
@@ -417,35 +367,17 @@ float AP_PitchController::get_servo_out(int32_t angle_err, float scaler, bool di
         desired_rate *= (1 - roll_prop);
     }
 
-    // HIGH   : NDI + INDI
-    // MIDDLE : P + INDI
-    // LOW    : P + PID
-    // PID to INDI, flag = 0010; INDI to PID, flag = 0100; no change, flag = 0001
-    if ((flag) & (1U << 2)) {
-        // 0100, reset PID
-        rate_pid.reset_filter();
-    } else if ((flag) & (1U << 1)) {
-        // 0010, reset INDI
-        rate_indi.reset_filter();
-    } 
-
-    if (sw_pos == RC_Channel::AuxSwitchPos::HIGH) {
-        // HIGH, NDI + INDI
-        ;
-    } else if (sw_pos == RC_Channel::AuxSwitchPos::MIDDLE) {
-        // MIDDLE, P + INDI
-        deflection += _get_rate_out_INDI(desired_rate, scaler, disable_integrator, aspeed, ground_mode, indi_gains, plane_shape, indi_kf_params);
-    } else {
-        // LOW, P + PID
-        deflection = _get_rate_out(desired_rate, scaler, disable_integrator, aspeed, ground_mode);
-    }
-    
-    return deflection;
+    return _get_rate_out(desired_rate, scaler, disable_integrator, aspeed, ground_mode);
 }
 
 void AP_PitchController::reset_I()
 {
     rate_pid.reset_I();
+}
+
+void AP_PitchController::reset_filter()
+{
+    rate_pid.reset_filter();
 }
 
 /*

@@ -830,6 +830,10 @@ const AP_Param::Info Plane::var_info[] = {
     // @Path: ../libraries/APM_Control/AP_SteerController.cpp
 	GOBJECT(steerController,        "STEER2SRV_",   AP_SteerController),
 
+    // @Group: INDI_
+    // @Path: ../libraries/APM_Control/AP_INDIController.cpp
+	GOBJECT(indiController,        "INDI_",   AP_INDIController),
+
 	// variables not in the g class which contain EEPROM saved variables
 
     // @Group: COMPASS_
@@ -1281,130 +1285,52 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @DisplayName: Moment Coefficent of Roll by Aileron
     // @Description: Moment Coefficent of Roll by Aileron
     // @User: Standard
-    AP_GROUPINFO("MC_L_A", 40, ParametersG2, mc_l_a, 0),
+    AP_GROUPINFO("MC_L_A", 40, ParametersG2, mc_l_a, -0.1),
 
     // @Param: MC_L_R
     // @DisplayName: Moment Coefficent of Roll by Rudder
     // @Description: Moment Coefficent of Roll by Rudder
     // @User: Standard
-    AP_GROUPINFO("MC_L_R", 41, ParametersG2, mc_l_r, 0),
+    AP_GROUPINFO("MC_L_R", 41, ParametersG2, mc_l_r, 0.005),
 
     // @Param: MC_M_E
     // @DisplayName: Moment Coefficent of Pitch by Elevator
     // @Description: Moment Coefficent of Pitch by Elevator
     // @User: Standard
-    AP_GROUPINFO("MC_M_E", 42, ParametersG2, mc_m_e, 0),
+    AP_GROUPINFO("MC_M_E", 42, ParametersG2, mc_m_e, -1),
 
     // @Param: MC_N_A
     // @DisplayName: Moment Coefficent of Yaw by Aileron
     // @Description: Moment Coefficent of Yaw by Aileron
     // @User: Standard
-    AP_GROUPINFO("MC_N_A", 43, ParametersG2, mc_n_a, 0),
+    AP_GROUPINFO("MC_N_A", 43, ParametersG2, mc_n_a, -0.002),
 
     // @Param: MC_N_R
     // @DisplayName: Moment Coefficent of Yaw by Rudder
     // @Description: Moment Coefficent of Yaw by Rudder
     // @User: Standard
-    AP_GROUPINFO("MC_N_R", 44, ParametersG2, mc_n_r, 0),
+    AP_GROUPINFO("MC_N_R", 44, ParametersG2, mc_n_r, -0.1),
 
     // @Param: WING_AREA
     // @DisplayName: wing area
     // @Description: wing area
     // @Units: m^2
     // @User: Standard
-    AP_GROUPINFO("WING_AREA", 45, ParametersG2, wing_area, 0),
+    AP_GROUPINFO("WING_AREA", 45, ParametersG2, wing_area, 0.98),
 
     // @Param: WING_SPAN
     // @DisplayName: wing span
     // @Description: wing span
     // @Units: m
     // @User: Standard
-    AP_GROUPINFO("WING_SPAN", 46, ParametersG2, wing_span, 0),
+    AP_GROUPINFO("WING_SPAN", 46, ParametersG2, wing_span, 2.80),
 
     // @Param: WING_CHORD
     // @DisplayName: wing mean aerodynamic chord
     // @Description: wing mean aerodynamic chord
     // @Units: m
     // @User: Standard
-    AP_GROUPINFO("WING_CHORD", 47, ParametersG2, wing_chord, 0),
-
-    // @Param: RLL_RATE_INDI_K
-    // @DisplayName: INDI roll controller gain
-    // @Description: INDI roll controller gain
-    // @User: Standard
-    AP_GROUPINFO("RLL_RATE_INDI_K", 48, ParametersG2, roll_rate_indi_k, 0.5),
-
-    // @Param: PTCH_RATE_INDI_K
-    // @DisplayName: INDI pitch controller gain
-    // @Description: INDI pitch controller gain
-    // @User: Standard
-    AP_GROUPINFO("PTCH_RATE_INDI_K", 49, ParametersG2, pitch_rate_indi_k, 0.5),
-
-    // @Param: YAW_RATE_INDI_K
-    // @DisplayName: INDI yaw controller gain
-    // @Description: INDI yaw controller gain
-    // @User: Standard
-    AP_GROUPINFO("YAW_RATE_INDI_K", 50, ParametersG2, yaw_rate_indi_k, 0.5),
-
-    // @Param: RLL_ATT_NDI_K
-    // @DisplayName: NDI roll controller gain
-    // @Description: NDI roll controller gain
-    // @User: Standard
-    AP_GROUPINFO("RLL_ATT_NDI_K", 51, ParametersG2, roll_att_ndi_k, 0.1),
-
-    // @Param: PTCH_ATT_NDI_K
-    // @DisplayName: NDI pitch controller gain
-    // @Description: NDI pitch controller gain
-    // @User: Standard
-    AP_GROUPINFO("PTCH_ATT_NDI_K", 52, ParametersG2, pitch_att_ndi_k, 0.1),
-
-    // @Param: YAW_ATT_NDI_K
-    // @DisplayName: NDI yaw controller gain
-    // @Description: NDI yaw controller gain
-    // @User: Standard
-    AP_GROUPINFO("YAW_ATT_NDI_K", 53, ParametersG2, yaw_att_ndi_k, 0.1),
-
-    // @Param: RLL_INDI_KF_Q
-    // @DisplayName: INDI roll KF process noise Cov
-    // @Description: INDI roll KF process noise Cov
-    // @User: Standard
-    AP_GROUPINFO("RLL_INDI_KF_Q", 54, ParametersG2, roll_indi_kf_Q, 1),
-
-    // @Param: PTCH_INDI_KF_Q
-    // @DisplayName: INDI pitch KF process noise Cov
-    // @Description: INDI pitch KF process noise Cov
-    // @User: Standard
-    AP_GROUPINFO("PTCH_INDI_KF_Q", 55, ParametersG2, pitch_indi_kf_Q, 1),
-
-    // @Param: YAW_INDI_KF_Q
-    // @DisplayName: INDI yaw KF process noise Cov
-    // @Description: INDI yaw KF process noise Cov
-    // @User: Standard
-    AP_GROUPINFO("YAW_INDI_KF_Q", 56, ParametersG2, yaw_indi_kf_Q, 1),
-
-    // @Param: RLL_INDI_KF_R
-    // @DisplayName: INDI roll KF measurement noise Cov
-    // @Description: INDI roll KF measurement noise Cov
-    // @User: Standard
-    AP_GROUPINFO("RLL_INDI_KF_R", 57, ParametersG2, roll_indi_kf_R, 1),
-
-    // @Param: PTCH_INDI_KF_R
-    // @DisplayName: INDI pitch KF measurement noise Cov
-    // @Description: INDI pitch KF measurement noise Cov
-    // @User: Standard
-    AP_GROUPINFO("PTCH_INDI_KF_R", 58, ParametersG2, pitch_indi_kf_R, 1),
-
-    // @Param: YAW_INDI_KF_R
-    // @DisplayName: INDI yaw KF measurement noise Cov
-    // @Description: INDI yaw KF measurement noise Cov
-    // @User: Standard
-    AP_GROUPINFO("YAW_INDI_KF_R", 59, ParametersG2, yaw_indi_kf_R, 1),
-
-    // @Param: CUSTOM_RC_SW
-    // @DisplayName: RC switch for PID and custom controller
-    // @Description: RC switch for PID and custom controller
-    // @User: Standard
-    AP_GROUPINFO("CUSTOM_RC_SW", 60, ParametersG2, custom_ctrl_rc_switch, 7),
+    AP_GROUPINFO("WING_CHORD", 47, ParametersG2, wing_chord, 0.35),
 
     AP_GROUPEND
 };

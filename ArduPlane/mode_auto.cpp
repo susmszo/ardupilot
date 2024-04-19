@@ -39,6 +39,8 @@ bool ModeAuto::_enter()
     plane.g2.soaring_controller.init_cruising();
 #endif
 
+    plane.indiController.reset_INDI();
+
     return true;
 }
 
@@ -58,6 +60,11 @@ void ModeAuto::_exit()
         }
     }
     plane.auto_state.started_flying_in_auto_ms = 0;
+    plane.pitchController.reset_I();
+    plane.pitchController.reset_filter();
+    plane.rollController.reset_I();
+    plane.rollController.reset_filter();
+    plane.yawController.reset_rate_PID();
 }
 
 void ModeAuto::update()
@@ -174,8 +181,9 @@ void ModeAuto::run()
         reset_controllers();
 
     } else {
-        // Normal flight, run base class
-        Mode::run();
-
+        // // Normal flight, run base class
+        // Mode::run();
+        // INDI control
+        plane.stabilize_INDI();
     }
 }

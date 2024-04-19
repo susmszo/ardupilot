@@ -12,51 +12,9 @@ void Plane::plane_shape_update()
     plane_shape.C_m_e = g2.mc_m_e;
     plane_shape.C_n_a = g2.mc_n_a;
     plane_shape.C_n_r = g2.mc_n_r;
-}
-
-// update INDI kf parameters
-void Plane::INDI_kf_param_update()
-{
-    indi_kf_params.Q_roll = g2.roll_indi_kf_Q;
-    indi_kf_params.R_roll = g2.roll_indi_kf_R;
-    indi_kf_params.Q_pitch = g2.pitch_indi_kf_Q;
-    indi_kf_params.R_pitch = g2.pitch_indi_kf_R;
-    indi_kf_params.Q_yaw = g2.yaw_indi_kf_Q;
-    indi_kf_params.R_yaw = g2.yaw_indi_kf_R;
-}
-
-// update INDI gains
-void Plane::INDI_gain_update()
-{
-    indi_gains = Matrix3f(g2.roll_rate_indi_k, 0, 0, 0, g2.pitch_rate_indi_k, 0, 0, 0, g2.yaw_rate_indi_k);
-}
-
-// update NDI gains
-void Plane::NDI_gain_update()
-{
-    ndi_gains = Matrix3f(g2.roll_att_ndi_k, 0, 0, 0, g2.pitch_att_ndi_k, 0, 0, 0, g2.yaw_att_ndi_k);
-}
-
-// controller switch upon RC
-void Plane::custom_control_switch()
-{
-    int8_t channel = g2.custom_ctrl_rc_switch;
-    pos = rc().channel(channel)->get_aux_switch_pos();
-    uint8_t flag = 0;
-    // HIGH   : NDI + INDI
-    // MIDDLE : P + INDI
-    // LOW    : P + PID
-    // PID to INDI, flag = 0010; INDI to PID, flag = 0100; no change, flag = 0001
-    if ((pos_pre == RC_Channel::AuxSwitchPos::LOW) && (pos == RC_Channel::AuxSwitchPos::MIDDLE || pos == RC_Channel::AuxSwitchPos::HIGH))
-    {
-        flag |= (1U << 1);
-    } else if ((pos == RC_Channel::AuxSwitchPos::LOW) && (pos_pre == RC_Channel::AuxSwitchPos::MIDDLE || pos_pre == RC_Channel::AuxSwitchPos::HIGH)) {
-        flag |= (1U << 2);
-    } else {
-        flag |= (1U << 0);
-    }
-    custom_ctrl_sw_flag = flag;
-    pos_pre = pos;
+    plane_shape.S = g2.wing_area;
+    plane_shape.b = g2.wing_span;
+    plane_shape.c = g2.wing_chord;
 }
 
 /*
@@ -161,6 +119,35 @@ bool Plane::stick_mixing_enabled(void)
     return true;
 }
 
+void Plane::stabilize_INDI()
+{
+    const Vector3f INDI_out = stabilize_INDI_get_all_out();
+
+    indiController.set_deflection(INDI_out * 0.01);
+
+    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, INDI_out.x);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, INDI_out.y);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, INDI_out.z);
+}
+
+Vector3f Plane::stabilize_INDI_get_all_out()
+{
+    demanded_pitch = nav_pitch_cd + int32_t(g.pitch_trim * 100.0) + SRV_Channels::get_output_scaled(SRV_Channel::k_throttle) * g.kff_throttle_to_pitch;
+    
+    // in deg/s
+    // const float coordination_yaw_rate = degrees(GRAVITY_MSS * tanf(radians(nav_roll_cd * 0.01f)) / MAX(aparm.airspeed_min, smoothed_airspeed));
+
+    // get_servo_out_INDI is in deg
+    Vector3f INDI_out = indiController.get_servo_out_INDI(nav_roll_cd, demanded_pitch, ahrs.yaw_sensor, plane_shape) * 100;
+    
+    deflection_out += INDI_out;
+    
+    deflection_out.x = constrain_float(deflection_out.x, -4500, 4500);
+    deflection_out.y = constrain_float(deflection_out.y, -4500, 4500);
+    deflection_out.z = constrain_float(deflection_out.z, -4500, 4500);
+
+    return deflection_out;
+}
 
 /*
   this is the main roll stabilization function. It takes the
@@ -181,6 +168,7 @@ void Plane::stabilize_roll()
 
     const float roll_out = stabilize_roll_get_roll_out();
     SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, roll_out);
+    deflection_out.x = roll_out;
 }
 
 float Plane::stabilize_roll_get_roll_out()
@@ -234,6 +222,7 @@ void Plane::stabilize_pitch()
 
     const float pitch_out = stabilize_pitch_get_pitch_out();
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, pitch_out);
+    deflection_out.y = pitch_out;
 }
 
 float Plane::stabilize_pitch_get_pitch_out()
@@ -287,8 +276,7 @@ float Plane::stabilize_pitch_get_pitch_out()
     }
 
     return pitchController.get_servo_out(demanded_pitch - ahrs.pitch_sensor, speed_scaler, disable_integrator,
-                                         ground_mode && !(plane.flight_option_enabled(FlightOptions::DISABLE_GROUND_PID_SUPPRESSION)),
-                                         indi_gains, plane_shape, indi_kf_params, pos, custom_ctrl_sw_flag);
+                                         ground_mode && !(plane.flight_option_enabled(FlightOptions::DISABLE_GROUND_PID_SUPPRESSION)));
 }
 
 /*
@@ -438,6 +426,7 @@ void Plane::stabilize_yaw()
         SRV_Channels::set_output_scaled(SRV_Channel::k_steering, steering_output);
     }
 
+    deflection_out.z = rudder_output;
 }
 
 /*

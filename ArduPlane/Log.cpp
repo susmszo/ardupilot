@@ -46,8 +46,6 @@ void Plane::Log_Write_Attitude(void)
     logger.Write_PID(LOG_PIDR_MSG, rollController.get_pid_info());
     logger.Write_PID(LOG_PIDP_MSG, pitchController.get_pid_info());
 
-    logger.Write_INDI(LOG_INDIP_MSG, pitchController.get_indi_info());
-
     if (yawController.enabled()) {
         logger.Write_PID(LOG_PIDY_MSG, yawController.get_pid_info());
     }
@@ -55,6 +53,10 @@ void Plane::Log_Write_Attitude(void)
     if (steerController.active()) {
         logger.Write_PID(LOG_PIDS_MSG, steerController.get_pid_info());
     }
+
+    logger.Write_INDIR(LOG_IDIR_MSG, indiController.get_indi_info());
+    logger.Write_INDIP(LOG_IDIP_MSG, indiController.get_indi_info());
+    logger.Write_INDIY(LOG_IDIY_MSG, indiController.get_indi_info());
 
     AP::ahrs().Log_Write();
 }

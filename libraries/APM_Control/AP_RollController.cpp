@@ -277,6 +277,11 @@ void AP_RollController::reset_I()
     rate_pid.reset_I();
 }
 
+void AP_RollController::reset_filter()
+{
+    rate_pid.reset_filter();
+}
+
 /*
   convert from old to new PIDs
   this is a temporary conversion function during development

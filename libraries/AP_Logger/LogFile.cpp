@@ -516,28 +516,103 @@ void AP_Logger::Write_PID(uint8_t msg_type, const AP_PIDInfo &info)
 }
 
 // usrdefine: INDI packet
-void AP_Logger::Write_INDI(uint8_t msg_type, const AP_INDIInfo &info)
+void AP_Logger::Write_INDIR(uint8_t msg_type, const AP_INDIInfo &info)
 {
     enum class log_INDI_Flags : uint8_t {
         RESET = 1U<<0, // true if the controller was reset
+        INVERSE_N = 1U<<1, // true if the matrix can't be inversed 
     };
 
     uint8_t flags = 0;
     if (info.reset) {
         flags |= (uint8_t)log_INDI_Flags::RESET;
     }
-
-    int index = info.index;
+    if (info.inverse_N) {
+        flags |= (uint8_t)log_INDI_Flags::INVERSE_N;
+    }
 
     const struct log_INDI pkt{
         LOG_PACKET_HEADER_INIT(msg_type),
         time_us         : AP_HAL::micros64(),
-        target          : info.target[index-1],
-        actual          : info.actual[index-1],
-        error           : info.error[index-1],
-        rate_hat        : info.kf_update_vars.X_hat[0],
-        acc_hat         : info.kf_update_vars.X_hat[1],
-        delta_inc       : info.delta_inc,
+        target          : info.rate_target[0],
+        actual          : info.rate_actual[0],
+        error           : info.rate_error[0],
+        rate_hat        : info.roll_kf_vars.X_hat[0],
+        acc_hat         : info.roll_kf_vars.X_hat[1],
+        target_d        : info.rate_target_derivative[0],
+        acc_d           : info.rate_meas_derivative_direct[0],
+        v               : info.v[0],
+        v_              : info.v_[0],
+        delta_inc       : info.delta_inc[0],
+        delta           : info.delta[0],
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+void AP_Logger::Write_INDIP(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_INDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+        INVERSE_N = 1U<<1, // true if the matrix can't be inversed 
+    };
+
+    uint8_t flags = 0;
+    if (info.reset) {
+        flags |= (uint8_t)log_INDI_Flags::RESET;
+    }
+    if (info.inverse_N) {
+        flags |= (uint8_t)log_INDI_Flags::INVERSE_N;
+    }
+
+    const struct log_INDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.rate_target[1],
+        actual          : info.rate_actual[1],
+        error           : info.rate_error[1],
+        rate_hat        : info.pitch_kf_vars.X_hat[0],
+        acc_hat         : info.pitch_kf_vars.X_hat[1],
+        target_d        : info.rate_target_derivative[1],
+        acc_d           : info.rate_meas_derivative_direct[1],
+        v               : info.v[1],
+        v_              : info.v_[1],
+        delta_inc       : info.delta_inc[1],
+        delta           : info.delta[1],
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+void AP_Logger::Write_INDIY(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_INDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+        INVERSE_N = 1U<<1, // true if the matrix can't be inversed 
+    };
+
+    uint8_t flags = 0;
+    if (info.reset) {
+        flags |= (uint8_t)log_INDI_Flags::RESET;
+    }
+    if (info.inverse_N) {
+        flags |= (uint8_t)log_INDI_Flags::INVERSE_N;
+    }
+
+    const struct log_INDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.rate_target[2],
+        actual          : info.rate_actual[2],
+        error           : info.rate_error[2],
+        rate_hat        : info.yaw_kf_vars.X_hat[0],
+        acc_hat         : info.yaw_kf_vars.X_hat[1],
+        target_d        : info.rate_target_derivative[2],
+        acc_d           : info.rate_meas_derivative_direct[2],
+        v               : info.v[2],
+        v_              : info.v_[2],
+        delta_inc       : info.delta_inc[2],
+        delta           : info.delta[2],
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));

@@ -1,7 +1,7 @@
 #pragma once
 
 /// @file	AP_INDI.h
-/// @brief	Plane INDI rate control algorithm, with EEPROM-backed storage of constants.
+/// @brief	Plane INDI rate control and NDI attitude control algorithm, with EEPROM-backed storage of constants.
 
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
@@ -16,64 +16,50 @@
 #include "AP_INDIInfo.h"
 
 /// @class	AP_INDI
-/// @brief	Plane INDI rate control class
-
-// class Plane_Shape {
-
-// public:
-
-//     struct Defaults {
-//         float I_x;
-//         float I_y;
-//         float I_z;
-//         float I_xz;
-//         float C_l_a;
-//         float C_l_r;
-//         float C_m_e;
-//         float C_n_a;
-//         float C_n_r;
-//         float S;
-//         float b;
-//         float c;
-//     };
-
-//     Plane_Shape(float initial_I_x, float initial_I_y, float initial_I_z, float initial_I_xz,
-//                 float initial_C_l_a, float initial_C_l_r, float initial_C_m_e, float initial_C_n_a,
-//                 float initial_C_n_r, float initial_S, float initial_b, float initial_c);
-    
-// };
-
-// Plane_Shape::Plane_Shape(/* args */)
-// {
-// }
+/// @brief	Plane INDI rate control and NDI attitude control class
 
 class AP_INDI {
 
 public:
 
     struct Defaults{
-        float filt_T_hz;
-        float filt_E_hz;
-        float filt_D_hz;
-        int index;
+        float roll_INDI_k;
+        float pitch_INDI_k;
+        float yaw_INDI_k;
+        float roll_NDI_k;
+        float pitch_NDI_k;
+        float yaw_NDI_k;
+        float roll_KF_Q;
+        float roll_KF_R;
+        float pitch_KF_Q;
+        float pitch_KF_R;
+        float yaw_KF_Q;
+        float yaw_KF_R;
+        float roll_filt_T_hz;
+        float roll_filt_E_hz;
+        float roll_filt_D_hz;
+        float pitch_filt_T_hz;
+        float pitch_filt_E_hz;
+        float pitch_filt_D_hz;
+        float yaw_filt_T_hz;
+        float yaw_filt_E_hz;
+        float yaw_filt_D_hz;
     };
     
     // Constructor for INDI
-    AP_INDI(float initial_filt_T_hz, float initial_filt_E_hz, float initial_filt_D_hz, int initial_index);
-    AP_INDI(const AP_INDI::Defaults &defaults) :
-        AP_INDI(
-            defaults.filt_T_hz,
-            defaults.filt_E_hz,
-            defaults.filt_D_hz,
-            defaults.index
-            )
-        { }
+    AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float initial_yaw_INDI_k,
+            float initial_roll_NDI_k, float initial_pitch_NDI_k, float initial_yaw_NDI_k,
+            float initial_roll_KF_Q, float initial_roll_KF_R, float initial_pitch_KF_Q,
+            float initial_pitch_KF_R, float initial_yaw_KF_Q, float initial_yaw_KF_R,
+            float initial_roll_filt_T_hz, float initial_roll_filt_E_hz, float initial_roll_filt_D_hz, 
+            float initial_pitch_filt_T_hz, float initial_pitch_filt_E_hz, float initial_pitch_filt_D_hz, 
+            float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz);
 
     CLASS_NO_COPY(AP_INDI);
 
-    float update_all(Vector3f target, Vector3f measurement, float dt, Matrix3f K, INDI_KF_Params kf_params,
-                     float air_dens, float airspeed, AP_Plane_Shape plane_shape, const AP_AHRS &_ahrs);
-    // float update_error(float error, float dt, float air_dens, float airspeed, int index, AP_Plane_Shape plane_shape);
+    Vector3f update_rate(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw, 
+                         int32_t angle_meas_roll, int32_t angle_meas_pitch, int32_t angle_meas_yaw, float dt);
+    Vector3f update_delta_inc(Vector3f rate_control, Vector3f rate_meas, float dt, float airspeed, Plane_Shape &plane_shape);
     
     // INDI internal KF
     KF_Update_Vars update_kalman_filter(Matrix3f A, Vector3f F, Vector3f C, Vector3f X, float Y, 
@@ -87,19 +73,60 @@ public:
         _flags._reset_filter = true;
     }
 
-    // get accessors
-    AP_Float &filt_T_hz() { return _filt_T_hz; }
-    AP_Float &filt_E_hz() { return _filt_E_hz; }
-    AP_Float &filt_D_hz() { return _filt_D_hz; }
+    void set_delta(Vector3f delta)
+    {
+        _indi_info.delta = delta;
+    }
 
-    float get_filt_T_alpha(float dt) const;
-    float get_filt_E_alpha(float dt) const;
-    float get_filt_D_alpha(float dt) const;
+    // get accessors
+    AP_Float &roll_INDI_k() { return _roll_INDI_k; };
+    AP_Float &pitch_INDI_k() { return _pitch_INDI_k; };
+    AP_Float &yaw_INDI_k() { return _yaw_INDI_k; };
+    AP_Float &roll_NDI_k() { return _roll_NDI_k; };
+    AP_Float &pitch_NDI_k() { return _pitch_NDI_k; };
+    AP_Float &yaw_NDI_k() { return _yaw_NDI_k; };
+    AP_Float &roll_KF_Q() { return _roll_KF_Q; };
+    AP_Float &roll_KF_R() { return _roll_KF_R; };
+    AP_Float &pitch_KF_Q() { return _pitch_KF_Q; };
+    AP_Float &pitch_KF_R() { return _pitch_KF_R; };
+    AP_Float &yaw_KF_Q() { return _yaw_KF_Q; };
+    AP_Float &yaw_KF_R() { return _yaw_KF_R; };
+    AP_Float &roll_filt_T_hz() { return _roll_filt_T_hz; };
+    AP_Float &roll_filt_E_hz() { return _roll_filt_E_hz; };
+    AP_Float &roll_filt_D_hz() { return _roll_filt_D_hz; };
+    AP_Float &pitch_filt_T_hz() { return _pitch_filt_T_hz; };
+    AP_Float &pitch_filt_E_hz() { return _pitch_filt_E_hz; };
+    AP_Float &pitch_filt_D_hz() { return _pitch_filt_D_hz; };
+    AP_Float &yaw_filt_T_hz() { return _yaw_filt_T_hz; };
+    AP_Float &yaw_filt_E_hz() { return _yaw_filt_E_hz; };
+    AP_Float &yaw_filt_D_hz() { return _yaw_filt_D_hz; };
+
+    float get_filt_T_alpha(float dt, float filt_T) const;
+    float get_filt_E_alpha(float dt, float filt_E) const;
+    float get_filt_D_alpha(float dt, float filt_D) const;
 
     // set accessors
-    void filt_T_hz(const float v);
-    void filt_E_hz(const float v);
-    void filt_D_hz(const float v);
+    void roll_INDI_k(const float v) { _roll_INDI_k.set(v); };
+    void pitch_INDI_k(const float v) { _pitch_INDI_k.set(v); };
+    void yaw_INDI_k(const float v) { _yaw_INDI_k.set(v); };
+    void roll_NDI_k(const float v) { _roll_NDI_k.set(v); };
+    void pitch_NDI_k(const float v) { _pitch_NDI_k.set(v); };
+    void yaw_NDI_k(const float v) { _yaw_NDI_k.set(v); };
+    void roll_KF_Q(const float v) { _roll_KF_Q.set(v); };
+    void roll_KF_R(const float v) { _roll_KF_R.set(v); };
+    void pitch_KF_Q(const float v) { _pitch_KF_Q.set(v); };
+    void pitch_KF_R(const float v) { _pitch_KF_R.set(v); };
+    void yaw_KF_Q(const float v) { _yaw_KF_Q.set(v); };
+    void yaw_KF_R(const float v) { _yaw_KF_R.set(v); };
+    void roll_filt_T_hz(const float v) { _roll_filt_T_hz.set(fabsf(v)); };
+    void roll_filt_E_hz(const float v) { _roll_filt_E_hz.set(fabsf(v)); };
+    void roll_filt_D_hz(const float v) { _roll_filt_D_hz.set(fabsf(v)); };
+    void pitch_filt_T_hz(const float v) { _pitch_filt_T_hz.set(fabsf(v)); };
+    void pitch_filt_E_hz(const float v) { _pitch_filt_E_hz.set(fabsf(v)); };
+    void pitch_filt_D_hz(const float v) { _pitch_filt_D_hz.set(fabsf(v)); };
+    void yaw_filt_T_hz(const float v) { _yaw_filt_T_hz.set(fabsf(v)); };
+    void yaw_filt_E_hz(const float v) { _yaw_filt_E_hz.set(fabsf(v)); };
+    void yaw_filt_D_hz(const float v) { _yaw_filt_D_hz.set(fabsf(v)); };
 
     const AP_INDIInfo& get_indi_info(void) const { return _indi_info; }
 
@@ -109,26 +136,54 @@ public:
 protected:
 
     // parameters
-    AP_Float _filt_T_hz;         // PID target filter frequency in Hz
-    AP_Float _filt_E_hz;         // PID error filter frequency in Hz
-    AP_Float _filt_D_hz;         // PID derivative filter frequency in Hz
+    AP_Float _roll_INDI_k;
+    AP_Float _pitch_INDI_k;
+    AP_Float _yaw_INDI_k;
+    AP_Float _roll_NDI_k;
+    AP_Float _pitch_NDI_k;
+    AP_Float _yaw_NDI_k;
+    AP_Float _roll_KF_Q;
+    AP_Float _roll_KF_R;
+    AP_Float _pitch_KF_Q;
+    AP_Float _pitch_KF_R;
+    AP_Float _yaw_KF_Q;
+    AP_Float _yaw_KF_R;
+    AP_Float _roll_filt_T_hz;
+    AP_Float _roll_filt_E_hz;
+    AP_Float _roll_filt_D_hz;
+    AP_Float _pitch_filt_T_hz;
+    AP_Float _pitch_filt_E_hz;
+    AP_Float _pitch_filt_D_hz;
+    AP_Float _yaw_filt_T_hz;
+    AP_Float _yaw_filt_E_hz;
+    AP_Float _yaw_filt_D_hz;
 
+    Matrix3f _K_NDI;
+    Matrix3f _K_INDI;
+    Matrix3f _Mc_delta;
+    Matrix3f _I;
+    
     // flags
     struct ap_indi_flags {
         bool _reset_filter :1; // true when input filter should be reset during next call to set_input
+        bool _inverse_N :1; // true when M_c_delta can't be inversed
     } _flags;
 
     // internal variables
-    int _index;
+    Vector3f _angle_target_deg;
+    Vector3f _angle_meas_deg;
+    Vector3f _angle_error_deg;
+    Vector3f _angle_target_deg_derivative;
 
-    Vector3f _target;
-    Vector3f _measurement;
-    Vector3f _error;
-    Vector3f _target_derivative;
-    Vector3f _meas_derivative; // omega_dot
-    Vector3f _v; // virtual control input
-    float _delta;
-    
+    Vector3f _rate_target;
+    Vector3f _rate_meas;
+    Vector3f _rate_error;
+    Vector3f _rate_target_derivative;
+    Vector3f _rate_meas_derivative; // omega_dot
+    Vector3f _rate_meas_derivative_direct;
+
+    Vector3f _delta_inc;
+
     Matrix3f _kf_state_mat;
     Vector3f _kf_noise_mat;
     Vector3f _kf_output_mat;
@@ -148,17 +203,34 @@ protected:
     float _S;
     float _b;
     float _c;
+    Matrix3f _char_length_mat;
 
     Matrix3f _identity;
 
     AP_INDIInfo _indi_info;
-    AP_Plane_Shape _plane_shape;
 
 private:
 
-    const float default_filt_T_hz;
-    const float default_filt_E_hz;
-    const float default_filt_D_hz;
-    const int default_index;
+    const float default_roll_INDI_k;
+    const float default_pitch_INDI_k;
+    const float default_yaw_INDI_k;
+    const float default_roll_NDI_k;
+    const float default_pitch_NDI_k;
+    const float default_yaw_NDI_k;
+    const float default_roll_KF_Q;
+    const float default_roll_KF_R;
+    const float default_pitch_KF_Q;
+    const float default_pitch_KF_R;
+    const float default_yaw_KF_Q;
+    const float default_yaw_KF_R;
+    const float default_roll_filt_T_hz;
+    const float default_roll_filt_E_hz;
+    const float default_roll_filt_D_hz;
+    const float default_pitch_filt_T_hz;
+    const float default_pitch_filt_E_hz;
+    const float default_pitch_filt_D_hz;
+    const float default_yaw_filt_T_hz;
+    const float default_yaw_filt_E_hz;
+    const float default_yaw_filt_D_hz;
 
 };

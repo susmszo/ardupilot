@@ -357,7 +357,7 @@ public:
         k_param_takeoff_throttle_max_t,
         k_param_autotune_options,
 
-        k_param_indi_rate_controller,
+        k_param_indiController,
     };
 
     AP_Int16 format_version;
@@ -593,27 +593,6 @@ public:
     AP_Float wing_area; // S
     AP_Float wing_span; // b
     AP_Float wing_chord; // c_bar
-
-    // INDI rate controller gains
-    AP_Float roll_rate_indi_k;
-    AP_Float pitch_rate_indi_k;
-    AP_Float yaw_rate_indi_k;
-
-    // NDI attitude controller gains
-    AP_Float roll_att_ndi_k;
-    AP_Float pitch_att_ndi_k;
-    AP_Float yaw_att_ndi_k;
-
-    // INDI kalman filter
-    AP_Float roll_indi_kf_Q;
-    AP_Float pitch_indi_kf_Q;
-    AP_Float yaw_indi_kf_Q;
-    AP_Float roll_indi_kf_R;
-    AP_Float pitch_indi_kf_R;
-    AP_Float yaw_indi_kf_R;
-
-    // RC switch for PID and custom controller
-    AP_Int8 custom_ctrl_rc_switch;
 
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;
