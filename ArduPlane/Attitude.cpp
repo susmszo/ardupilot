@@ -123,7 +123,7 @@ void Plane::stabilize_INDI()
 {
     const Vector3f INDI_out = stabilize_INDI_get_all_out();
 
-    indiController.set_deflection(INDI_out * 0.01);
+    // indiController.set_deflection(INDI_out * 0.01);
 
     SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, INDI_out.x);
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, INDI_out.y);
@@ -494,6 +494,7 @@ void Plane::stabilize()
             steerController.reset_I();            
         }
     }
+    indiController.set_deflection(deflection_out * 0.01);
 }
 
 

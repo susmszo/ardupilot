@@ -217,12 +217,16 @@ Vector3f AP_INDIController::_get_rate_out_INDI(Vector3f rate_desired, float airs
     
     Vector3f rate_meas = _ahrs.get_gyro();
 
+    // rate_meas.z = 0;
+
     // in rad
     Vector3f delta_inc = rate_indi.update_delta_inc(rate_desired, rate_meas, dt, airspeed, plane_shape);
 
-    // delta_inc.x = -delta_inc.x;
-    // delta_inc.y = -delta_inc.y;
+    delta_inc.x = -delta_inc.x;
+    // delta_inc.x = 0;
+    delta_inc.y = -delta_inc.y;
     // delta_inc.z = 0;
+    delta_inc.z = -delta_inc.z;
 
     _indi_info = rate_indi.get_indi_info();
 

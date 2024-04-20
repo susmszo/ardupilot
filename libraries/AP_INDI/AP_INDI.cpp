@@ -253,19 +253,19 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     } else {
         Vector3f rate_target_last = _rate_target;
         Vector3f rate_meas_last = _rate_meas;
-        // Vector3f rate_error = _rate_target - rate_meas;
-        // _rate_target.x += (rate_target.x - _rate_target.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
-        // _rate_target.y += (rate_target.y - _rate_target.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
-        // _rate_target.z += (rate_target.z - _rate_target.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
-        // _rate_error.x += (rate_error.x - _rate_error.x) * get_filt_E_alpha(dt, _roll_filt_E_hz);
-        // _rate_error.y += (rate_error.y - _rate_error.y) * get_filt_E_alpha(dt, _pitch_filt_E_hz);
-        // _rate_error.z += (rate_error.z - _rate_error.z) * get_filt_E_alpha(dt, _yaw_filt_E_hz);
-        _rate_target.x = rate_target.x; 
-        _rate_target.y = rate_target.y; 
-        _rate_target.z = rate_target.z; 
-        _rate_error.x = rate_target.x - rate_meas.x;
-        _rate_error.y = rate_target.y - rate_meas.y;
-        _rate_error.z = rate_target.z - rate_meas.z;
+        Vector3f rate_error = _rate_target - rate_meas;
+        _rate_target.x += (rate_target.x - _rate_target.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
+        _rate_target.y += (rate_target.y - _rate_target.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
+        _rate_target.z += (rate_target.z - _rate_target.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
+        _rate_error.x += (rate_error.x - _rate_error.x) * get_filt_E_alpha(dt, _roll_filt_E_hz);
+        _rate_error.y += (rate_error.y - _rate_error.y) * get_filt_E_alpha(dt, _pitch_filt_E_hz);
+        _rate_error.z += (rate_error.z - _rate_error.z) * get_filt_E_alpha(dt, _yaw_filt_E_hz);
+        // _rate_target.x = rate_target.x; 
+        // _rate_target.y = rate_target.y; 
+        // _rate_target.z = rate_target.z; 
+        // _rate_error.x = rate_target.x - rate_meas.x;
+        // _rate_error.y = rate_target.y - rate_meas.y;
+        // _rate_error.z = rate_target.z - rate_meas.z;
         _rate_meas = rate_meas;
         // calculate and filter derivative
         if (is_positive(dt)) {
@@ -275,7 +275,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
         }
     }
 
-    _K_INDI = Matrix3f(_roll_INDI_k, 0, 0, 0, _pitch_NDI_k, 0, 0, 0, _yaw_INDI_k);
+    _K_INDI = Matrix3f(_roll_INDI_k, 0, 0, 0, _pitch_INDI_k, 0, 0, 0, _yaw_INDI_k);
     
     _Mc_delta = _char_length_mat * Matrix3f(_C_l_a, 0, _C_l_r, 0, _C_m_e, 0, _C_n_a, 0, _C_n_r) * 0.5 * SSL_AIR_DENSITY * powf(airspeed, 2) * _S;
     _I = Matrix3f(_I_x, 0, -_I_xz, 0, _I_y, 0, -_I_xz, 0, _I_z);
@@ -295,12 +295,12 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     _rate_meas_derivative.y = _kf_update_vars_P.X_hat.y;
     _rate_meas_derivative.z = _kf_update_vars_Y.X_hat.y;
 
-    // v += (_rate_target_derivative - _rate_meas_derivative);
-    v += (_rate_target_derivative - _rate_meas_derivative_direct);
+    v += (_rate_target_derivative - _rate_meas_derivative);
+    // v += (_rate_target_derivative - _rate_meas_derivative_direct);
     _indi_info.v_ = v;
 
     // _delta_inc in rad
-    if (_Mc_delta.inverse(_Mc_delta)) {
+    if (_Mc_delta.invert()) {
         _delta_inc = _Mc_delta * _I * v;
         _flags._inverse_N = false;
     } else {
@@ -317,7 +317,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     _indi_info.delta_inc = _delta_inc * RAD_TO_DEG;
     _indi_info.roll_kf_vars = _kf_update_vars_R;
     _indi_info.pitch_kf_vars = _kf_update_vars_P;
-    _indi_info.roll_kf_vars = _kf_update_vars_Y;
+    _indi_info.yaw_kf_vars = _kf_update_vars_Y;
 
     return _delta_inc;
 }

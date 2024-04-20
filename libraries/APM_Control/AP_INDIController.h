@@ -22,7 +22,7 @@ public:
 
     void set_deflection(Vector3f deflection)
     {
-        rate_indi.set_delta(deflection);
+        _indi_info.delta = deflection;
     }
 
     const AP_INDIInfo& get_indi_info(void) const
