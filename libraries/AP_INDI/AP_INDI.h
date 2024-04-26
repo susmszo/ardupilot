@@ -44,6 +44,9 @@ public:
         float yaw_filt_T_hz;
         float yaw_filt_E_hz;
         float yaw_filt_D_hz;
+        float roll_delta_limit_deg;
+        float pitch_delta_limit_deg;
+        float yaw_delta_limit_deg;
     };
     
     // Constructor for INDI
@@ -53,7 +56,8 @@ public:
             float initial_pitch_KF_R, float initial_yaw_KF_Q, float initial_yaw_KF_R,
             float initial_roll_filt_T_hz, float initial_roll_filt_E_hz, float initial_roll_filt_D_hz, 
             float initial_pitch_filt_T_hz, float initial_pitch_filt_E_hz, float initial_pitch_filt_D_hz, 
-            float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz);
+            float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
+            float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg);
 
     CLASS_NO_COPY(AP_INDI);
 
@@ -71,6 +75,7 @@ public:
     // reset_filter - input filter will be reset to the next value provided to set_input()
     void reset_filter() {
         _flags._reset_filter = true;
+        _flags._reset_NDI = true;
     }
 
     void set_delta(Vector3f delta)
@@ -157,6 +162,9 @@ protected:
     AP_Float _yaw_filt_T_hz;
     AP_Float _yaw_filt_E_hz;
     AP_Float _yaw_filt_D_hz;
+    AP_Float _roll_delta_limit_deg;
+    AP_Float _pitch_delta_limit_deg;
+    AP_Float _yaw_delta_limit_deg;
 
     Matrix3f _K_NDI;
     Matrix3f _K_INDI;
@@ -167,6 +175,7 @@ protected:
     struct ap_indi_flags {
         bool _reset_filter :1; // true when input filter should be reset during next call to set_input
         bool _inverse_N :1; // true when M_c_delta can't be inversed
+        bool _reset_NDI :1;
     } _flags;
 
     // internal variables
@@ -232,5 +241,8 @@ private:
     const float default_yaw_filt_T_hz;
     const float default_yaw_filt_E_hz;
     const float default_yaw_filt_D_hz;
+    const float default_roll_delta_limit_deg;
+    const float default_pitch_delta_limit_deg;
+    const float default_yaw_delta_limit_deg;
 
 };

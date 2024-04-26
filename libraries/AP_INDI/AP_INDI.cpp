@@ -119,6 +119,24 @@ const AP_Param::GroupInfo AP_INDI::var_info[] = {
     // @Units: Hz
     AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_FLTD", 20, AP_INDI, _yaw_filt_D_hz, default_yaw_filt_D_hz),
 
+    // @Param: RLL_DELIM
+    // @DisplayName: INDI aileron deflection limit in deg
+    // @Description: INDI aileron deflection limit in deg
+    // @Units: deg
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("RLL_DELIM", 21, AP_INDI, _roll_delta_limit_deg, default_roll_delta_limit_deg),
+
+    // @Param: PTCH_DELIM
+    // @DisplayName: INDI elevator deflection limit in deg
+    // @Description: INDI elevator deflection limit in deg
+    // @Units: deg
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("PTCH_DELIM", 22, AP_INDI, _pitch_delta_limit_deg, default_pitch_delta_limit_deg),
+
+    // @Param: YAW_DELIM
+    // @DisplayName: INDI rudder deflection limit in deg
+    // @Description: INDI rudder deflection limit in deg
+    // @Units: deg
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_DELIM", 23, AP_INDI, _yaw_delta_limit_deg, default_yaw_delta_limit_deg),
+
     AP_GROUPEND
 };
 
@@ -129,7 +147,8 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
                  float initial_pitch_KF_R, float initial_yaw_KF_Q, float initial_yaw_KF_R,
                  float initial_roll_filt_T_hz, float initial_roll_filt_E_hz, float initial_roll_filt_D_hz, 
                  float initial_pitch_filt_T_hz, float initial_pitch_filt_E_hz, float initial_pitch_filt_D_hz, 
-                 float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz) :
+                 float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
+                 float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg) :
     default_roll_INDI_k(initial_roll_INDI_k),
     default_pitch_INDI_k(initial_pitch_INDI_k),
     default_yaw_INDI_k(initial_yaw_INDI_k),
@@ -150,7 +169,10 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     default_pitch_filt_D_hz(initial_pitch_filt_D_hz),
     default_yaw_filt_T_hz(initial_yaw_filt_T_hz),
     default_yaw_filt_E_hz(initial_yaw_filt_E_hz),
-    default_yaw_filt_D_hz(initial_yaw_filt_D_hz)
+    default_yaw_filt_D_hz(initial_yaw_filt_D_hz),
+    default_roll_delta_limit_deg(initial_roll_delta_limit_deg),
+    default_pitch_delta_limit_deg(initial_pitch_delta_limit_deg),
+    default_yaw_delta_limit_deg(initial_yaw_delta_limit_deg)
 {
     // load parameter values from eeprom
     AP_Param::setup_object_defaults(this, var_info);
@@ -158,6 +180,7 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     // reset input filter to first value received
     _flags._reset_filter = true;
     _flags._inverse_N = false;
+    _flags._reset_NDI = true;
 
     _identity.identity();
 
@@ -171,21 +194,43 @@ Vector3f AP_INDI::update_rate(int32_t angle_target_roll, int32_t angle_target_pi
                               int32_t angle_meas_roll, int32_t angle_meas_pitch, int32_t angle_meas_yaw, float dt)
 {
     Vector3f angle_target_deg = Vector3f(angle_target_roll * 0.01, angle_target_pitch * 0.01, angle_target_yaw * 0.01);
-    _angle_meas_deg = Vector3f(angle_meas_roll * 0.01, angle_meas_pitch * 0.01, angle_meas_yaw * 0.01);
-    _angle_error_deg = angle_target_deg - _angle_meas_deg;
+    Vector3f angle_meas_deg = Vector3f(angle_meas_roll * 0.01, angle_meas_pitch * 0.01, angle_meas_yaw * 0.01);
 
-    _angle_error_deg.z = 0;
+    // _angle_error_deg.z = 0;
 
     // don't process inf or NaN
     if (!isfinite(_angle_error_deg.x) || !isfinite(_angle_error_deg.y) || !isfinite(_angle_error_deg.z)) {
         return Vector3f(0, 0, 0);
     }
 
-    Vector3f angle_target_deg_last = _angle_target_deg;
-    
-    // calculate derivative
-    if (is_positive(dt)) {
-        _angle_target_deg_derivative = (angle_target_deg - angle_target_deg_last) / dt;
+    // reset input filter to value received and re-initialization
+    _indi_info.reset_NDI = _flags._reset_NDI;
+    if (_flags._reset_NDI) {
+        _flags._reset_NDI = false;
+        _angle_target_deg = angle_target_deg;
+        _angle_error_deg = _angle_target_deg - angle_meas_deg;
+        _angle_target_deg_derivative = Vector3f(0, 0, 0);
+    } else {
+        Vector3f angle_target_deg_last = _angle_target_deg;
+        Vector3f angle_error_deg = _angle_target_deg - angle_meas_deg;
+        _angle_target_deg.x += (angle_target_deg.x - _angle_target_deg.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
+        _angle_target_deg.y += (angle_target_deg.y - _angle_target_deg.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
+        _angle_target_deg.z += (angle_target_deg.z - _angle_target_deg.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
+        _angle_error_deg.x += (angle_error_deg.x - _angle_error_deg.x) * get_filt_E_alpha(dt, _roll_filt_E_hz);
+        _angle_error_deg.y += (angle_error_deg.y - _angle_error_deg.y) * get_filt_E_alpha(dt, _pitch_filt_E_hz);
+        _angle_error_deg.z += (angle_error_deg.z - _angle_error_deg.z) * get_filt_E_alpha(dt, _yaw_filt_E_hz);
+        // _angle_target_deg.x = angle_target_deg.x; 
+        // _angle_target_deg.y = angle_target_deg.y; 
+        // _angle_target_deg.z = angle_target_deg.z; 
+        // _angle_error_deg.x = angle_target_deg.x - angle_meas_deg.x;
+        // _angle_error_deg.y = angle_target_deg.y - angle_meas_deg.y;
+        // _angle_error_deg.z = angle_target_deg.z - angle_meas_deg.z;
+        _angle_meas_deg = angle_meas_deg;
+
+        // calculate derivative
+        if (is_positive(dt)) {
+            _angle_target_deg_derivative = (_angle_target_deg - angle_target_deg_last) / dt;
+        }
     }
 
     _K_NDI = Matrix3f(_roll_NDI_k, 0, 0, 0, _pitch_NDI_k, 0, 0, 0, _yaw_NDI_k);
@@ -194,14 +239,22 @@ Vector3f AP_INDI::update_rate(int32_t angle_target_roll, int32_t angle_target_pi
     float theta = radians(_angle_meas_deg.y);
     Matrix3f transform_mat(1, 0, -sinf(theta), 0, cosf(phi), (cosf(theta) * sinf(phi)), 0, -sinf(phi), (cosf(theta) * cosf(phi)));
 
+    Vector3f v = _K_NDI * (_angle_error_deg * DEG_TO_RAD);
+    _indi_info.ndi_v = v;
+
+    v += _angle_target_deg_derivative * DEG_TO_RAD;
+    _indi_info.ndi_v_ = v;
+
     // rate_c in rad/s
-    Vector3f rate_control = transform_mat * (_K_NDI * (_angle_error_deg * DEG_TO_RAD) + _angle_target_deg_derivative * DEG_TO_RAD);
+    // Vector3f rate_control = transform_mat * (_K_NDI * (_angle_error_deg * DEG_TO_RAD) + _angle_target_deg_derivative * DEG_TO_RAD);
+    Vector3f rate_control = transform_mat * v;
 
     _angle_target_deg = angle_target_deg;
 
     _indi_info.angle_target = angle_target_deg;
     _indi_info.angle_actual = _angle_meas_deg;
     _indi_info.angle_error = _angle_error_deg;
+    _indi_info.angle_target_derivative = _angle_target_deg_derivative;
     _indi_info.rate_control = rate_control;
     
     return rate_control;
@@ -230,6 +283,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
         _rate_target = rate_target;
         _rate_error = _rate_target - rate_meas;
         _rate_target_derivative = Vector3f(0, 0, 0);
+        _rate_meas_derivative_direct = Vector3f(0, 0, 0);
         // kalman filter initialization
         _kf_state_mat = get_kf_state_mat(dt);
         _kf_noise_mat = get_kf_noise_mat(dt);
@@ -253,7 +307,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     } else {
         Vector3f rate_target_last = _rate_target;
         Vector3f rate_meas_last = _rate_meas;
-        Vector3f rate_error = _rate_target - rate_meas;
+        Vector3f rate_error = rate_target - rate_meas;
         _rate_target.x += (rate_target.x - _rate_target.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
         _rate_target.y += (rate_target.y - _rate_target.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
         _rate_target.z += (rate_target.z - _rate_target.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
@@ -271,7 +325,11 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
         if (is_positive(dt)) {
             _rate_target_derivative = (_rate_target - rate_target_last) / dt;
             // directly derivate
+            Vector3f rate_meas_derivative_direct = (rate_meas - rate_meas_last) / dt;
             _rate_meas_derivative_direct = (rate_meas - rate_meas_last) / dt;
+            _rate_meas_derivative_direct.x += (rate_meas_derivative_direct.x - _rate_meas_derivative_direct.x) * get_filt_D_alpha(dt, _roll_filt_D_hz); 
+            _rate_meas_derivative_direct.y += (rate_meas_derivative_direct.y - _rate_meas_derivative_direct.y) * get_filt_D_alpha(dt, _pitch_filt_D_hz); 
+            _rate_meas_derivative_direct.z += (rate_meas_derivative_direct.z - _rate_meas_derivative_direct.z) * get_filt_D_alpha(dt, _yaw_filt_D_hz); 
         }
     }
 
@@ -308,13 +366,27 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
         _flags._inverse_N = true;
     }
     _indi_info.inverse_N = _flags._inverse_N;
+
+    _indi_info.delta_inc = _delta_inc * RAD_TO_DEG;
+
+    // output limit
+    if (is_positive(_roll_delta_limit_deg)) {
+        _delta_inc.x = constrain_float(_delta_inc.x, -_roll_delta_limit_deg * DEG_TO_RAD, _roll_delta_limit_deg * DEG_TO_RAD);
+    }
+    if (is_positive(_pitch_delta_limit_deg)) {
+        _delta_inc.y = constrain_float(_delta_inc.y, -_pitch_delta_limit_deg * DEG_TO_RAD, _pitch_delta_limit_deg * DEG_TO_RAD);
+    }
+    if (is_positive(_roll_delta_limit_deg)) {
+        _delta_inc.z = constrain_float(_delta_inc.z, -_yaw_delta_limit_deg * DEG_TO_RAD, _yaw_delta_limit_deg * DEG_TO_RAD);
+    }
     
+    _indi_info.delta_inc_limit = _delta_inc * RAD_TO_DEG;
+
     _indi_info.rate_target = _rate_target;
     _indi_info.rate_actual = _rate_meas;
     _indi_info.rate_error = _rate_error;
     _indi_info.rate_target_derivative = _rate_target_derivative;
     _indi_info.rate_meas_derivative_direct = _rate_meas_derivative_direct;
-    _indi_info.delta_inc = _delta_inc * RAD_TO_DEG;
     _indi_info.roll_kf_vars = _kf_update_vars_R;
     _indi_info.pitch_kf_vars = _kf_update_vars_P;
     _indi_info.yaw_kf_vars = _kf_update_vars_Y;

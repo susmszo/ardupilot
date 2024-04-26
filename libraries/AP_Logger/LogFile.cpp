@@ -544,6 +544,7 @@ void AP_Logger::Write_INDIR(uint8_t msg_type, const AP_INDIInfo &info)
         v               : info.v[0],
         v_              : info.v_[0],
         delta_inc       : info.delta_inc[0],
+        delta_inc_limit : info.delta_inc_limit[0],
         delta           : info.delta[0],
         flags           : flags
     };
@@ -578,6 +579,7 @@ void AP_Logger::Write_INDIP(uint8_t msg_type, const AP_INDIInfo &info)
         v               : info.v[1],
         v_              : info.v_[1],
         delta_inc       : info.delta_inc[1],
+        delta_inc_limit : info.delta_inc_limit[1],
         delta           : info.delta[1],
         flags           : flags
     };
@@ -612,7 +614,86 @@ void AP_Logger::Write_INDIY(uint8_t msg_type, const AP_INDIInfo &info)
         v               : info.v[2],
         v_              : info.v_[2],
         delta_inc       : info.delta_inc[2],
+        delta_inc_limit : info.delta_inc_limit[2],
         delta           : info.delta[2],
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+void AP_Logger::Write_NDIR(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_NDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+    };
+
+    uint8_t flags = 0;
+    if (info.reset_NDI) {
+        flags |= (uint8_t)log_NDI_Flags::RESET;
+    }
+
+    const struct log_NDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.angle_target[0],
+        actual          : info.angle_actual[0],
+        error           : info.angle_error[0],
+        target_d        : info.angle_target_derivative[0],
+        v               : info.ndi_v[0],
+        v_              : info.ndi_v_[0],
+        rate_c          : info.rate_control[0], 
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+void AP_Logger::Write_NDIP(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_NDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+    };
+
+    uint8_t flags = 0;
+    if (info.reset_NDI) {
+        flags |= (uint8_t)log_NDI_Flags::RESET;
+    }
+
+    const struct log_NDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.angle_target[1],
+        actual          : info.angle_actual[1],
+        error           : info.angle_error[1],
+        target_d        : info.angle_target_derivative[1],
+        v               : info.ndi_v[1],
+        v_              : info.ndi_v_[1],
+        rate_c          : info.rate_control[1], 
+        flags           : flags
+    };
+    WriteBlock(&pkt, sizeof(pkt));
+}
+
+void AP_Logger::Write_NDIY(uint8_t msg_type, const AP_INDIInfo &info)
+{
+    enum class log_NDI_Flags : uint8_t {
+        RESET = 1U<<0, // true if the controller was reset
+    };
+
+    uint8_t flags = 0;
+    if (info.reset_NDI) {
+        flags |= (uint8_t)log_NDI_Flags::RESET;
+    }
+
+    const struct log_NDI pkt{
+        LOG_PACKET_HEADER_INIT(msg_type),
+        time_us         : AP_HAL::micros64(),
+        target          : info.angle_target[2],
+        actual          : info.angle_actual[2],
+        error           : info.angle_error[2],
+        target_d        : info.angle_target_derivative[2],
+        v               : info.ndi_v[2],
+        v_              : info.ndi_v_[2],
+        rate_c          : info.rate_control[2], 
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));

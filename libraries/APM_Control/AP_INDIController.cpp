@@ -198,6 +198,24 @@ const AP_Param::GroupInfo AP_INDIController::var_info[] = {
     // @Units: Hz
     // @User: Standard
 
+    // @Param: RLL_DELIM
+    // @DisplayName: INDI aileron deflection limit in deg
+    // @Description: INDI aileron deflection limit in deg
+    // @Units: deg
+    // @User: Standard
+
+    // @Param: PTCH_DELIM
+    // @DisplayName: INDI elevator deflection limit in deg
+    // @Description: INDI elevator deflection limit in deg
+    // @Units: deg
+    // @User: Standard
+
+    // @Param: YAW_DELIM
+    // @DisplayName: INDI rudder deflection limit in deg
+    // @Description: INDI rudder deflection limit in deg
+    // @Units: deg
+    // @User: Standard
+
     AP_SUBGROUPINFO(rate_indi, "", 6, AP_INDIController, AP_INDI),
  
     AP_GROUPEND

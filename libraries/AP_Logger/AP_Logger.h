@@ -288,6 +288,9 @@ public:
     void Write_INDIR(uint8_t msg_type, const class AP_INDIInfo &info);
     void Write_INDIP(uint8_t msg_type, const class AP_INDIInfo &info);
     void Write_INDIY(uint8_t msg_type, const class AP_INDIInfo &info);
+    void Write_NDIR(uint8_t msg_type, const class AP_INDIInfo &info);
+    void Write_NDIP(uint8_t msg_type, const class AP_INDIInfo &info);
+    void Write_NDIY(uint8_t msg_type, const class AP_INDIInfo &info);
 
     // returns true if logging of a message should be attempted
     bool should_log(uint32_t mask) const;

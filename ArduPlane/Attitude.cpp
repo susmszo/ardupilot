@@ -141,7 +141,13 @@ Vector3f Plane::stabilize_INDI_get_all_out()
     Vector3f INDI_out = indiController.get_servo_out_INDI(nav_roll_cd, demanded_pitch, ahrs.yaw_sensor, plane_shape) * 100;
     
     deflection_out += INDI_out;
-    
+
+    // const float dt = AP::scheduler().get_loop_period_s();
+
+    // deflection_out.x += INDI_out.x * calc_lowpass_alpha_dt(dt, g2.filter_a_hz);
+    // deflection_out.y += INDI_out.y * calc_lowpass_alpha_dt(dt, g2.filter_e_hz);
+    // deflection_out.z += INDI_out.z * calc_lowpass_alpha_dt(dt, g2.filter_r_hz);
+
     deflection_out.x = constrain_float(deflection_out.x, -4500, 4500);
     deflection_out.y = constrain_float(deflection_out.y, -4500, 4500);
     deflection_out.z = constrain_float(deflection_out.z, -4500, 4500);

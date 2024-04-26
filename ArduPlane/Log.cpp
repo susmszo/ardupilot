@@ -54,9 +54,14 @@ void Plane::Log_Write_Attitude(void)
         logger.Write_PID(LOG_PIDS_MSG, steerController.get_pid_info());
     }
 
+    logger.Write_NDIR(LOG_DIR_MSG, indiController.get_indi_info());
+    logger.Write_NDIP(LOG_DIP_MSG, indiController.get_indi_info());
+    logger.Write_NDIY(LOG_DIY_MSG, indiController.get_indi_info());
+
     logger.Write_INDIR(LOG_IDIR_MSG, indiController.get_indi_info());
     logger.Write_INDIP(LOG_IDIP_MSG, indiController.get_indi_info());
     logger.Write_INDIY(LOG_IDIY_MSG, indiController.get_indi_info());
+    
 
     AP::ahrs().Log_Write();
 }

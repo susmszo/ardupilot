@@ -1332,6 +1332,27 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("WING_CHORD", 47, ParametersG2, wing_chord, 0.35),
 
+    // @Param: INDI_FLT_A
+    // @DisplayName: INDI aileron deflection low-pass filter frequency in Hz
+    // @Description: INDI aileron deflection low-pass filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_FLT_A", 48, ParametersG2, filter_a_hz, 1),
+
+    // @Param: INDI_FLT_E
+    // @DisplayName: INDI aileron deflection low-pass filter frequency in Hz
+    // @Description: INDI aileron deflection low-pass filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_FLT_E", 49, ParametersG2, filter_e_hz, 1),
+
+    // @Param: INDI_FLT_R
+    // @DisplayName: INDI aileron deflection low-pass filter frequency in Hz
+    // @Description: INDI aileron deflection low-pass filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_FLT_R", 50, ParametersG2, filter_r_hz, 1),
+
     AP_GROUPEND
 };
 

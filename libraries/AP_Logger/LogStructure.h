@@ -426,7 +426,21 @@ struct PACKED log_INDI {
     float v;
     float v_;
     float delta_inc;
+    float delta_inc_limit;
     float delta;
+    uint8_t flags;
+};
+
+struct PACKED log_NDI {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float target;
+    float actual;
+    float error;
+    float target_d;
+    float v;
+    float v_;
+    float rate_c;
     uint8_t flags;
 };
 
@@ -691,10 +705,15 @@ struct PACKED log_VER {
 #define PID_UNITS  "s-----------"
 #define PID_MULTS  "F-----------"
 
-#define INDI_LABELS "TimeUS,Tar,Act,Err,Rate,Acc,TarD,AccD,v,v_,Dinc,D,Flags"
-#define INDI_FMT    "QfffffffffffB"
-#define INDI_UNITS  "s------------"
-#define INDI_MULTS  "F------------"
+#define INDI_LABELS "TimeUS,Tar,Act,Err,Rate,Acc,TarD,AccD,v,v_,Di,DiL,D,Flags"
+#define INDI_FMT    "QffffffffffffB"
+#define INDI_UNITS  "s-------------"
+#define INDI_MULTS  "F-------------"
+
+#define NDI_LABELS "TimeUS,Tar,Act,Err,TarD,v,v_,RateC,Flags"
+#define NDI_FMT    "QfffffffB"
+#define NDI_UNITS  "s--------"
+#define NDI_MULTS  "F--------"
 
 // @LoggerMessage: ADSB
 // @Description: Automatic Dependent Serveillance - Broadcast detected vehicle information
@@ -1291,6 +1310,12 @@ LOG_STRUCTURE_FROM_ESC_TELEM \
       "IDIP", INDI_FMT,  INDI_LABELS, INDI_UNITS, INDI_MULTS , true }, \
     { LOG_IDIY_MSG, sizeof(log_INDI), \
       "IDIY", INDI_FMT,  INDI_LABELS, INDI_UNITS, INDI_MULTS , true }, \
+    { LOG_DIR_MSG, sizeof(log_NDI), \
+      "DIR", NDI_FMT,  NDI_LABELS, NDI_UNITS, NDI_MULTS , true }, \
+    { LOG_DIP_MSG, sizeof(log_NDI), \
+      "DIP", NDI_FMT,  NDI_LABELS, NDI_UNITS, NDI_MULTS , true }, \
+    { LOG_DIY_MSG, sizeof(log_NDI), \
+      "DIY", NDI_FMT,  NDI_LABELS, NDI_UNITS, NDI_MULTS , true }, \
 LOG_STRUCTURE_FROM_LANDING \
 LOG_STRUCTURE_FROM_INERTIALSENSOR \
 LOG_STRUCTURE_FROM_DAL \
@@ -1377,6 +1402,9 @@ enum LogMessages : uint8_t {
     LOG_IDIR_MSG,
     LOG_IDIP_MSG,
     LOG_IDIY_MSG,
+    LOG_DIR_MSG,
+    LOG_DIP_MSG,
+    LOG_DIY_MSG,
 
     LOG_IDS_FROM_LANDING,
     LOG_MAG_MSG,

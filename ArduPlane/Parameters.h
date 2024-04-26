@@ -594,6 +594,11 @@ public:
     AP_Float wing_span; // b
     AP_Float wing_chord; // c_bar
 
+    // deflection filter
+    AP_Float filter_a_hz;
+    AP_Float filter_e_hz;
+    AP_Float filter_r_hz;
+
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;
 };

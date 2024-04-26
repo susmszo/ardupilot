@@ -9,6 +9,9 @@ struct AP_INDIInfo {
     Vector3f angle_target;
     Vector3f angle_actual;
     Vector3f angle_error; 
+    Vector3f angle_target_derivative;
+    Vector3f ndi_v;
+    Vector3f ndi_v_;
     Vector3f rate_control;
 
     Vector3f rate_target;
@@ -19,6 +22,7 @@ struct AP_INDIInfo {
     Vector3f v;
     Vector3f v_;
     Vector3f delta_inc;
+    Vector3f delta_inc_limit;
     Vector3f delta;
 
     KF_Update_Vars roll_kf_vars;
@@ -27,6 +31,7 @@ struct AP_INDIInfo {
     
     bool inverse_N;
     bool reset;
+    bool reset_NDI;
 };
 
 struct Plane_Shape {
