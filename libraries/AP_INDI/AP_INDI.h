@@ -216,7 +216,7 @@ protected:
 
     Matrix3f _identity;
 
-    AP_INDIInfo _indi_info;
+    AP_INDIInfo _indi_info = {};
 
 private:
 

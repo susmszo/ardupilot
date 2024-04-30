@@ -184,7 +184,7 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
 
     _identity.identity();
 
-    memset(&_indi_info, 0, sizeof(_indi_info));
+    // memset(&_indi_info, 0, sizeof(_indi_info));
 }
 
 //  update_rate - set target and measured inputs to NDI controller and calculate outputs
@@ -326,7 +326,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
             _rate_target_derivative = (_rate_target - rate_target_last) / dt;
             // directly derivate
             Vector3f rate_meas_derivative_direct = (rate_meas - rate_meas_last) / dt;
-            _rate_meas_derivative_direct = (rate_meas - rate_meas_last) / dt;
+            // _rate_meas_derivative_direct = (rate_meas - rate_meas_last) / dt;
             _rate_meas_derivative_direct.x += (rate_meas_derivative_direct.x - _rate_meas_derivative_direct.x) * get_filt_D_alpha(dt, _roll_filt_D_hz); 
             _rate_meas_derivative_direct.y += (rate_meas_derivative_direct.y - _rate_meas_derivative_direct.y) * get_filt_D_alpha(dt, _pitch_filt_D_hz); 
             _rate_meas_derivative_direct.z += (rate_meas_derivative_direct.z - _rate_meas_derivative_direct.z) * get_filt_D_alpha(dt, _yaw_filt_D_hz); 
@@ -353,8 +353,8 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     _rate_meas_derivative.y = _kf_update_vars_P.X_hat.y;
     _rate_meas_derivative.z = _kf_update_vars_Y.X_hat.y;
 
-    v += (_rate_target_derivative - _rate_meas_derivative);
-    // v += (_rate_target_derivative - _rate_meas_derivative_direct);
+    // v += (_rate_target_derivative - _rate_meas_derivative);
+    v += (_rate_target_derivative - _rate_meas_derivative_direct);
     _indi_info.v_ = v;
 
     // _delta_inc in rad
@@ -376,7 +376,7 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     if (is_positive(_pitch_delta_limit_deg)) {
         _delta_inc.y = constrain_float(_delta_inc.y, -_pitch_delta_limit_deg * DEG_TO_RAD, _pitch_delta_limit_deg * DEG_TO_RAD);
     }
-    if (is_positive(_roll_delta_limit_deg)) {
+    if (is_positive(_yaw_delta_limit_deg)) {
         _delta_inc.z = constrain_float(_delta_inc.z, -_yaw_delta_limit_deg * DEG_TO_RAD, _yaw_delta_limit_deg * DEG_TO_RAD);
     }
     

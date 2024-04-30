@@ -229,6 +229,32 @@ private:
     // custom plane shape parameters
     Plane_Shape plane_shape;
 
+    bool kf_reset = true;
+    Vector3f rate_meas_last;
+
+    KF_Update_Vars kf_vars_R;
+    KF_Update_Vars kf_vars_P;
+    KF_Update_Vars kf_vars_Y;
+
+    Matrix3f kf_state_mat;
+    Vector3f kf_noise_mat;
+    Vector3f kf_output_mat;
+    Matrix3f iden;
+
+    float Q_roll;
+    float Q_pitch;
+    float Q_yaw;
+    float R_roll;
+    float R_pitch;
+    float R_yaw;
+
+    Vector3f ang_acc_direct;
+    Vector3f ang_acc_low_pass;
+
+    float roll_aac_filt_hz;
+    float pitch_aac_filt_hz;
+    float yaw_aac_filt_hz;
+
     // Training mode
     bool training_manual_roll;  // user has manual roll control
     bool training_manual_pitch; // user has manual pitch control
@@ -908,6 +934,9 @@ private:
 
     void plane_shape_update();
 
+    void angular_acc_estimator();
+    KF_Update_Vars kalman_filter(Matrix3f A, Vector3f F, Vector3f C, Vector3f X, float Y, Matrix3f P, float Q, float R, float dt);
+
 #if HAL_LOGGING_ENABLED
 
     // methods for AP_Vehicle:
@@ -929,6 +958,8 @@ private:
     void Log_Write_Vehicle_Startup_Messages();
     void Log_Write_AETR();
     void log_init();
+
+    void Log_Write_KF(KF_Update_Vars kf_R, KF_Update_Vars kf_P, KF_Update_Vars kf_Y, Vector3f acc_d, Vector3f acc_lp);
 #endif
 
     // Parameters.cpp

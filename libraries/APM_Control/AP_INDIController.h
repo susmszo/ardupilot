@@ -40,7 +40,7 @@ private:
     AP_Float _roll_ff_to_pitch;
     AP_Float _yaw_ff;
 
-    AP_INDI rate_indi{5, 5, 5, 10, 10, 10, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5};
+    AP_INDI rate_indi{5, 5, 5, 10, 10, 10, 10, 0.1, 10, 0.1, 10, 0.1, 3, 0, 10, 3, 0, 10, 3, 0, 10, 0, 0, 0};
 
     AP_INDIInfo _indi_info;
 

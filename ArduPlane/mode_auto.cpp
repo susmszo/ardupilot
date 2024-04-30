@@ -183,6 +183,7 @@ void ModeAuto::run()
     } else {
         // // Normal flight, run base class
         // Mode::run();
+
         // INDI control
         plane.stabilize_INDI();
     }

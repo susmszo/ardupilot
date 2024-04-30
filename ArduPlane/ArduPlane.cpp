@@ -139,6 +139,7 @@ const AP_Scheduler::Task Plane::scheduler_tasks[] = {
 #if AC_PRECLAND_ENABLED
     SCHED_TASK(precland_update, 400, 50, 160),
 #endif
+    SCHED_TASK(angular_acc_estimator, 400, 500, 161),
 };
 
 void Plane::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
@@ -294,6 +295,8 @@ void Plane::update_logging25(void)
 
     if (should_log(MASK_LOG_IMU))
         AP::ins().Write_Vibration();
+
+    Log_Write_KF(kf_vars_R, kf_vars_P, kf_vars_Y, ang_acc_direct, ang_acc_low_pass);
 }
 #endif  // HAL_LOGGING_ENABLED
 

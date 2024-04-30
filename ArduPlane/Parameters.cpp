@@ -1353,6 +1353,63 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("INDI_FLT_R", 50, ParametersG2, filter_r_hz, 1),
 
+    // @Param: INDI_T_RLL_KF_Q
+    // @DisplayName: (Test) INDI roll KF Q
+    // @Description: (Test) INDI roll KF Q
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_RLL_KF_Q", 51, ParametersG2, kf_roll_Q, 1),
+
+    // @Param: INDI_T_RLL_KF_R
+    // @DisplayName: (Test) INDI roll KF R
+    // @Description: (Test) INDI roll KF R
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_RLL_KF_R", 52, ParametersG2, kf_roll_R, 1),
+
+    // @Param: INDI_T_PTCH_KF_Q
+    // @DisplayName: (Test) INDI pitch KF Q
+    // @Description: (Test) INDI pitch KF Q
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_PTCH_KF_Q", 53, ParametersG2, kf_pitch_Q, 1),
+
+    // @Param: INDI_T_PTCH_KF_R
+    // @DisplayName: (Test) INDI pitch KF R
+    // @Description: (Test) INDI pitch KF R
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_PTCH_KF_R", 54, ParametersG2, kf_pitch_R, 1),
+
+    // @Param: INDI_T_YAW_KF_Q
+    // @DisplayName: (Test) INDI yaw KF Q
+    // @Description: (Test) INDI yaw KF Q
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_YAW_KF_Q", 55, ParametersG2, kf_yaw_Q, 1),
+
+    // @Param: INDI_T_YAW_KF_R
+    // @DisplayName: (Test) INDI yaw KF R
+    // @Description: (Test) INDI yaw KF R
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_YAW_KF_R", 56, ParametersG2, kf_yaw_R, 1),
+
+    // @Param: INDI_T_RLL_FLTM
+    // @DisplayName: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Description: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_RLL_FLTM", 57, ParametersG2, roll_filter_ang_acc_hz, 20),
+
+    // @Param: INDI_T_RLL_FLTM
+    // @DisplayName: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Description: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_PTCH_FLTM", 58, ParametersG2, pitch_filter_ang_acc_hz, 20),
+
+    // @Param: INDI_T_RLL_FLTM
+    // @DisplayName: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Description: (Test) INDI roll angular acceleration filter frequency in Hz
+    // @Units: Hz
+    // @User: Standard
+    AP_GROUPINFO("INDI_T_YAW_FLTM", 59, ParametersG2, yaw_filter_ang_acc_hz, 20),
+
     AP_GROUPEND
 };
 

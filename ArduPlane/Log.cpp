@@ -64,6 +64,27 @@ void Plane::Log_Write_Attitude(void)
     
 
     AP::ahrs().Log_Write();
+} 
+
+void Plane::Log_Write_KF(KF_Update_Vars kf_R, KF_Update_Vars kf_P, KF_Update_Vars kf_Y, Vector3f acc_d, Vector3f acc_lp)
+{
+    const struct log_KF pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_KF_MSG),
+        time_us         : AP_HAL::micros64(),
+        rate_kf_r       : kf_R.X_hat[0],
+        rate_kf_p       : kf_P.X_hat[0],
+        rate_kf_y       : kf_Y.X_hat[0],
+        acc_kf_r        : kf_R.X_hat[1],
+        acc_kf_p        : kf_P.X_hat[1],
+        acc_kf_y        : kf_Y.X_hat[1],
+        acc_d_r         : acc_d[0],
+        acc_d_p         : acc_d[1],
+        acc_d_y         : acc_d[2],
+        acc_lp_r        : acc_lp[0],
+        acc_lp_p        : acc_lp[1],
+        acc_lp_y        : acc_lp[2],
+    };
+    logger.WriteBlock(&pkt, sizeof(pkt));
 }
 
 // do fast logging for plane

@@ -444,6 +444,23 @@ struct PACKED log_NDI {
     uint8_t flags;
 };
 
+struct PACKED log_KF {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float rate_kf_r;
+    float rate_kf_p;
+    float rate_kf_y;
+    float acc_kf_r;
+    float acc_kf_p;
+    float acc_kf_y;
+    float acc_d_r;
+    float acc_d_p;
+    float acc_d_y;
+    float acc_lp_r;
+    float acc_lp_p;
+    float acc_lp_y;
+};
+
 struct PACKED log_WheelEncoder {
     LOG_PACKET_HEADER;
     uint64_t time_us;
@@ -1316,6 +1333,8 @@ LOG_STRUCTURE_FROM_ESC_TELEM \
       "DIP", NDI_FMT,  NDI_LABELS, NDI_UNITS, NDI_MULTS , true }, \
     { LOG_DIY_MSG, sizeof(log_NDI), \
       "DIY", NDI_FMT,  NDI_LABELS, NDI_UNITS, NDI_MULTS , true }, \
+    { LOG_KF_MSG, sizeof(log_KF), \
+      "KF", "Qffffffffffff",  "TimeUS,rR,rP,rY,akfR,akfP,akfY,adR,adP,adY,alpR,alpP,alpY", "s------------", "F------------" , true }, \
 LOG_STRUCTURE_FROM_LANDING \
 LOG_STRUCTURE_FROM_INERTIALSENSOR \
 LOG_STRUCTURE_FROM_DAL \
@@ -1405,6 +1424,8 @@ enum LogMessages : uint8_t {
     LOG_DIR_MSG,
     LOG_DIP_MSG,
     LOG_DIY_MSG,
+
+    LOG_KF_MSG,
 
     LOG_IDS_FROM_LANDING,
     LOG_MAG_MSG,

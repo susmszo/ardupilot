@@ -599,6 +599,17 @@ public:
     AP_Float filter_e_hz;
     AP_Float filter_r_hz;
 
+    AP_Float kf_roll_Q;
+    AP_Float kf_roll_R;
+    AP_Float kf_pitch_Q;
+    AP_Float kf_pitch_R;
+    AP_Float kf_yaw_Q;
+    AP_Float kf_yaw_R;
+
+    AP_Float roll_filter_ang_acc_hz;
+    AP_Float pitch_filter_ang_acc_hz;
+    AP_Float yaw_filter_ang_acc_hz;
+
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;
 };
