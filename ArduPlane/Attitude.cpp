@@ -196,7 +196,7 @@ Vector3f Plane::stabilize_INDI_get_all_out()
     // get_servo_out_INDI is in deg
     Vector3f INDI_out = indiController.get_servo_out_INDI(nav_roll_cd, demanded_pitch, ahrs.yaw_sensor, plane_shape) * 100;
     
-    deflection_out += INDI_out;
+    // deflection_out += INDI_out;
 
     const float dt = AP::scheduler().get_loop_period_s();
 

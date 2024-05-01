@@ -183,8 +183,6 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     _flags._reset_NDI = true;
 
     _identity.identity();
-
-    // memset(&_indi_info, 0, sizeof(_indi_info));
 }
 
 //  update_rate - set target and measured inputs to NDI controller and calculate outputs

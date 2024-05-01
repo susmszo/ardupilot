@@ -257,7 +257,7 @@ Vector3f AP_INDIController::_get_att_out_INDI(int32_t angle_target_roll, int32_t
 
     const AP_AHRS &_ahrs = AP::ahrs();
 
-    return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, _ahrs.yaw_sensor, dt);
+    return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw, dt);
 }
 
 /*
