@@ -364,7 +364,7 @@ Vector3f AP_INDIController::get_servo_out_INDI(int32_t angle_target_roll, int32_
     // use yaw rate offset INSTEAD of yaw control rate by NDI to ensure coordinated turn
     float rate_offset_yaw = (GRAVITY_MSS / MAX(aspeed, float(aparm.airspeed_min))) * sinf(bank_angle) * _yaw_ff;
     
-    rate_desired.z += rate_offset_yaw * DEG_TO_RAD;
+    rate_desired.z = rate_offset_yaw * DEG_TO_RAD;
 
     // return delta_inc in degrees
     return _get_rate_out_INDI(rate_desired, aspeed, plane_shape) * RAD_TO_DEG;
