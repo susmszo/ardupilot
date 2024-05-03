@@ -225,6 +225,12 @@ private:
 
     // in centi-degrees
     Vector3f deflection_out;
+    float deflection_a;
+    float deflection_e;
+    float deflection_r;
+    float deflection_a_t;
+    float deflection_e_t;
+    float deflection_r_t;
 
     // custom plane shape parameters
     Plane_Shape plane_shape;

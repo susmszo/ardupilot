@@ -177,13 +177,11 @@ bool Plane::stick_mixing_enabled(void)
 
 void Plane::stabilize_INDI()
 {
-    const Vector3f INDI_out = stabilize_INDI_get_all_out();
+    const Vector3f deflection = stabilize_INDI_get_all_out();
 
-    // indiController.set_deflection(INDI_out * 0.01);
-
-    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, INDI_out.x);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, INDI_out.y);
-    SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, INDI_out.z);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, deflection.x);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, deflection.y);
+    SRV_Channels::set_output_scaled(SRV_Channel::k_rudder, deflection.z);
 }
 
 Vector3f Plane::stabilize_INDI_get_all_out()
@@ -195,18 +193,18 @@ Vector3f Plane::stabilize_INDI_get_all_out()
 
     // get_servo_out_INDI is in deg
     Vector3f INDI_out = indiController.get_servo_out_INDI(nav_roll_cd, demanded_pitch, ahrs.yaw_sensor, plane_shape) * 100;
-    
-    // deflection_out += INDI_out;
 
     const float dt = AP::scheduler().get_loop_period_s();
 
-    deflection_out.x += INDI_out.x * calc_lowpass_alpha_dt(dt, g2.filter_a_hz);
-    deflection_out.y += INDI_out.y * calc_lowpass_alpha_dt(dt, g2.filter_e_hz);
-    deflection_out.z += INDI_out.z * calc_lowpass_alpha_dt(dt, g2.filter_r_hz);
+    deflection_a_t = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron) + INDI_out.x * calc_lowpass_alpha_dt(dt, g2.filter_a_hz);
+    deflection_e_t = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator) + INDI_out.y * calc_lowpass_alpha_dt(dt, g2.filter_e_hz);
+    // deflection_r_t = SRV_Channels::get_output_scaled(SRV_Channel::k_rudder) + INDI_out.z * calc_lowpass_alpha_dt(dt, g2.filter_r_hz);
 
-    deflection_out.x = constrain_float(deflection_out.x, -4500, 4500);
-    deflection_out.y = constrain_float(deflection_out.y, -4500, 4500);
-    deflection_out.z = constrain_float(deflection_out.z, -4500, 4500);
+    deflection_r_t = deflection_a_t * g.kff_rudder_mix;
+
+    deflection_out.x = constrain_float(deflection_a_t, -4500, 4500);
+    deflection_out.y = constrain_float(deflection_e_t, -4500, 4500);
+    deflection_out.z = constrain_float(deflection_r_t, -4500, 4500);
 
     return deflection_out;
 }
@@ -230,7 +228,7 @@ void Plane::stabilize_roll()
 
     const float roll_out = stabilize_roll_get_roll_out();
     SRV_Channels::set_output_scaled(SRV_Channel::k_aileron, roll_out);
-    deflection_out.x = roll_out;
+    // deflection_out.x = roll_out;
 }
 
 float Plane::stabilize_roll_get_roll_out()
@@ -284,7 +282,7 @@ void Plane::stabilize_pitch()
 
     const float pitch_out = stabilize_pitch_get_pitch_out();
     SRV_Channels::set_output_scaled(SRV_Channel::k_elevator, pitch_out);
-    deflection_out.y = pitch_out;
+    // deflection_out.y = pitch_out;
 }
 
 float Plane::stabilize_pitch_get_pitch_out()
@@ -488,7 +486,7 @@ void Plane::stabilize_yaw()
         SRV_Channels::set_output_scaled(SRV_Channel::k_steering, steering_output);
     }
 
-    deflection_out.z = rudder_output;
+    // deflection_out.z = rudder_output;
 }
 
 /*
@@ -556,7 +554,10 @@ void Plane::stabilize()
             steerController.reset_I();            
         }
     }
-    indiController.set_deflection(deflection_out * 0.01);
+    deflection_a = SRV_Channels::get_output_scaled(SRV_Channel::k_aileron);
+    deflection_e = SRV_Channels::get_output_scaled(SRV_Channel::k_elevator);
+    deflection_r = SRV_Channels::get_output_scaled(SRV_Channel::k_rudder);
+    indiController.set_deflection(deflection_a * 0.01, deflection_e * 0.01, deflection_r * 0.01);
 }
 
 

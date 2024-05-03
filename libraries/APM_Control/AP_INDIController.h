@@ -4,6 +4,7 @@
 #include "AP_AutoTune.h"
 #include <AP_Math/AP_Math.h>
 #include <AP_INDI/AP_INDI.h>
+#include <AC_PID/AC_PID.h>
 #include <RC_Channel/RC_Channel.h>
 
 class AP_INDIController
@@ -18,11 +19,21 @@ public:
     void reset_INDI()
     {
         rate_indi.reset_filter();
+        rate_indi.reset_I();
     }
 
-    void set_deflection(Vector3f deflection)
+    void set_deflection(float def_a, float def_e, float def_r)
     {
-        _indi_info.delta = deflection;
+        _indi_info.delta.x = def_a;
+        _indi_info.delta.y = def_e;
+        _indi_info.delta.z = def_r; 
+    }
+
+    void set_deflection_target(float def_a_t, float def_e_t, float def_r_t)
+    {
+        _indi_info.delta_target.x = def_a_t;
+        _indi_info.delta_target.y = def_e_t;
+        _indi_info.delta_target.z = def_r_t; 
     }
 
     const AP_INDIInfo& get_indi_info(void) const
@@ -40,7 +51,7 @@ private:
     AP_Float _roll_ff_to_pitch;
     AP_Float _yaw_ff;
 
-    AP_INDI rate_indi{5, 5, 5, 10, 10, 10, 10, 0.1, 10, 0.1, 10, 0.1, 3, 0, 10, 3, 0, 10, 3, 0, 10, 0, 0, 0};
+    AP_INDI rate_indi{5, 5, 5, 10, 10, 10, 10, 0.1, 10, 0.1, 10, 0.1, 3, 0, 10, 3, 0, 10, 3, 0, 10, 0, 0, 0, 0, 0, 0, 0.2, 0.2, 0.2};
 
     AP_INDIInfo _indi_info;
 

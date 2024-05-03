@@ -216,6 +216,36 @@ const AP_Param::GroupInfo AP_INDIController::var_info[] = {
     // @Units: deg
     // @User: Standard
 
+    // @Param: RLL_RATE_I
+    // @DisplayName: INDI roll controller PI Integral Gain
+    // @Description: INDI roll controller PI Integral Gain
+    // @User: Standard
+
+    // @Param: PTCH_RATE_I
+    // @DisplayName: INDI pitch controller PI Integral Gain
+    // @Description: INDI pitch controller PI Integral Gain
+    // @User: Standard
+
+    // @Param: YAW_RATE_I
+    // @DisplayName: INDI yaw controller PI Integral Gain
+    // @Description: INDI yaw controller PI Integral Gain
+    // @User: Standard
+
+    // @Param: RLL_IMAX
+    // @DisplayName: INDI roll controller PI Integral Maximum
+    // @Description: INDI roll controller PI Integral Maximum
+    // @User: Standard
+
+    // @Param: PTCH_IMAX
+    // @DisplayName: INDI pitch controller PI Integral Maximum
+    // @Description: INDI pitch controller PI Integral Maximum
+    // @User: Standard
+
+    // @Param: YAW_IMAX
+    // @DisplayName: INDI yaw controller PI Integral Maximum
+    // @Description: INDI yaw controller PI Integral Maximum
+    // @User: Standard
+
     AP_SUBGROUPINFO(rate_indi, "", 6, AP_INDIController, AP_INDI),
  
     AP_GROUPEND
@@ -243,8 +273,8 @@ Vector3f AP_INDIController::_get_rate_out_INDI(Vector3f rate_desired, float airs
     delta_inc.x = -delta_inc.x;
     // delta_inc.x = 0;
     delta_inc.y = -delta_inc.y;
-    // delta_inc.z = 0;
-    delta_inc.z = -delta_inc.z;
+    delta_inc.z = 0;
+    // delta_inc.z = -delta_inc.z;
 
     _indi_info = rate_indi.get_indi_info();
 
@@ -253,11 +283,11 @@ Vector3f AP_INDIController::_get_rate_out_INDI(Vector3f rate_desired, float airs
 
 Vector3f AP_INDIController::_get_att_out_INDI(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw)
 {
-    const float dt = AP::scheduler().get_loop_period_s();
-
+    // const float dt = AP::scheduler().get_loop_period_s();
     const AP_AHRS &_ahrs = AP::ahrs();
-
-    return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw, dt);
+    // return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw, dt);
+    
+    return rate_indi.update_rate_P(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw);
 }
 
 /*

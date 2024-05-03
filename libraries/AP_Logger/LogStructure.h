@@ -428,6 +428,7 @@ struct PACKED log_INDI {
     float delta_inc;
     float delta_inc_limit;
     float delta;
+    float I;
     uint8_t flags;
 };
 
@@ -722,10 +723,10 @@ struct PACKED log_VER {
 #define PID_UNITS  "s-----------"
 #define PID_MULTS  "F-----------"
 
-#define INDI_LABELS "TimeUS,Tar,Act,Err,Rate,Acc,TarD,AccD,v,v_,Di,DiL,D,Flags"
-#define INDI_FMT    "QffffffffffffB"
-#define INDI_UNITS  "s-------------"
-#define INDI_MULTS  "F-------------"
+#define INDI_LABELS "TimeUS,Tar,Act,Err,Rate,Acc,TarD,AccD,v,v_,Di,DiL,D,I,Flags"
+#define INDI_FMT    "QfffffffffffffB"
+#define INDI_UNITS  "s--------------"
+#define INDI_MULTS  "F--------------"
 
 #define NDI_LABELS "TimeUS,Tar,Act,Err,TarD,v,v_,RateC,Flags"
 #define NDI_FMT    "QfffffffB"

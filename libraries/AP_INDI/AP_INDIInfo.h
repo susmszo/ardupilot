@@ -24,6 +24,9 @@ struct AP_INDIInfo {
     Vector3f delta_inc;
     Vector3f delta_inc_limit;
     Vector3f delta;
+    Vector3f delta_target;
+
+    Vector3f rate_I;
 
     KF_Update_Vars roll_kf_vars;
     KF_Update_Vars pitch_kf_vars;

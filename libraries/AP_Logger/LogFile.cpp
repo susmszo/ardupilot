@@ -546,6 +546,7 @@ void AP_Logger::Write_INDIR(uint8_t msg_type, const AP_INDIInfo &info)
         delta_inc       : info.delta_inc[0],
         delta_inc_limit : info.delta_inc_limit[0],
         delta           : info.delta[0],
+        I               : info.rate_I[0],
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));
@@ -581,6 +582,7 @@ void AP_Logger::Write_INDIP(uint8_t msg_type, const AP_INDIInfo &info)
         delta_inc       : info.delta_inc[1],
         delta_inc_limit : info.delta_inc_limit[1],
         delta           : info.delta[1],
+        I               : info.rate_I[1],
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));
@@ -616,6 +618,7 @@ void AP_Logger::Write_INDIY(uint8_t msg_type, const AP_INDIInfo &info)
         delta_inc       : info.delta_inc[2],
         delta_inc_limit : info.delta_inc_limit[2],
         delta           : info.delta[2],
+        I               : info.rate_I[2],
         flags           : flags
     };
     WriteBlock(&pkt, sizeof(pkt));

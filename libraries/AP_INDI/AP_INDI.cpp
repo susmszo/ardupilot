@@ -137,6 +137,36 @@ const AP_Param::GroupInfo AP_INDI::var_info[] = {
     // @Units: deg
     AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_DELIM", 23, AP_INDI, _yaw_delta_limit_deg, default_yaw_delta_limit_deg),
 
+    // @Param: RLL_RATE_I
+    // @DisplayName: INDI roll controller PI Integral Gain
+    // @Description: INDI roll controller PI Integral Gain
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("RLL_RATE_I", 24, AP_INDI, _roll_INDI_I, default_roll_INDI_I),
+
+    // @Param: PTCH_RATE_I
+    // @DisplayName: INDI pitch controller PI Integral Gain
+    // @Description: INDI pitch controller PI Integral Gain
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("PTCH_RATE_I", 25, AP_INDI, _pitch_INDI_I, default_pitch_INDI_I),
+
+    // @Param: YAW_RATE_I
+    // @DisplayName: INDI yaw controller PI Integral Gain
+    // @Description: INDI yaw controller PI Integral Gain
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_RATE_I", 26, AP_INDI, _yaw_INDI_I, default_yaw_INDI_I),
+
+    // @Param: RLL_IMAX
+    // @DisplayName: INDI roll controller PI Integral Maximum
+    // @Description: INDI roll controller PI Integral Maximum
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("RLL_IMAX", 27, AP_INDI, _roll_imax, default_roll_imax),
+
+    // @Param: PTCH_IMAX
+    // @DisplayName: INDI pitch controller PI Integral Maximum
+    // @Description: INDI pitch controller PI Integral Maximum
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("PTCH_IMAX", 28, AP_INDI, _pitch_imax, default_pitch_imax),
+
+    // @Param: YAW_IMAX
+    // @DisplayName: INDI yaw controller PI Integral Maximum
+    // @Description: INDI yaw controller PI Integral Maximum
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_IMAX", 29, AP_INDI, _yaw_imax, default_yaw_imax),
+
     AP_GROUPEND
 };
 
@@ -148,7 +178,9 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
                  float initial_roll_filt_T_hz, float initial_roll_filt_E_hz, float initial_roll_filt_D_hz, 
                  float initial_pitch_filt_T_hz, float initial_pitch_filt_E_hz, float initial_pitch_filt_D_hz, 
                  float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
-                 float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg) :
+                 float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg,
+                 float initial_roll_INDI_I, float initial_pitch_INDI_I, float initial_yaw_INDI_I,
+                 float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax) :
     default_roll_INDI_k(initial_roll_INDI_k),
     default_pitch_INDI_k(initial_pitch_INDI_k),
     default_yaw_INDI_k(initial_yaw_INDI_k),
@@ -172,7 +204,13 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     default_yaw_filt_D_hz(initial_yaw_filt_D_hz),
     default_roll_delta_limit_deg(initial_roll_delta_limit_deg),
     default_pitch_delta_limit_deg(initial_pitch_delta_limit_deg),
-    default_yaw_delta_limit_deg(initial_yaw_delta_limit_deg)
+    default_yaw_delta_limit_deg(initial_yaw_delta_limit_deg),
+    default_roll_INDI_I(initial_roll_INDI_I),
+    default_pitch_INDI_I(initial_pitch_INDI_I),
+    default_yaw_INDI_I(initial_yaw_INDI_I),
+    default_roll_imax(initial_roll_imax),
+    default_pitch_imax(initial_pitch_imax),
+    default_yaw_imax(initial_yaw_imax)
 {
     // load parameter values from eeprom
     AP_Param::setup_object_defaults(this, var_info);
@@ -183,6 +221,16 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     _flags._reset_NDI = true;
 
     _identity.identity();
+}
+
+Vector3f AP_INDI::update_rate_P(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw, 
+                                int32_t angle_meas_roll, int32_t angle_meas_pitch, int32_t angle_meas_yaw)
+{
+    Vector3f angle_target_deg = Vector3f(angle_target_roll * 0.01, angle_target_pitch * 0.01, angle_target_yaw * 0.01);
+    Vector3f angle_meas_deg = Vector3f(angle_meas_roll * 0.01, angle_meas_pitch * 0.01, angle_meas_yaw * 0.01);
+    Vector3f angle_error_deg = angle_target_deg - angle_meas_deg;
+    Vector3f rate_control_rad = angle_error_deg / 0.3f * DEG_TO_RAD;
+    return rate_control_rad;
 }
 
 //  update_rate - set target and measured inputs to NDI controller and calculate outputs
@@ -210,19 +258,19 @@ Vector3f AP_INDI::update_rate(int32_t angle_target_roll, int32_t angle_target_pi
         _angle_target_deg_derivative = Vector3f(0, 0, 0);
     } else {
         Vector3f angle_target_deg_last = _angle_target_deg;
-        Vector3f angle_error_deg = _angle_target_deg - angle_meas_deg;
-        _angle_target_deg.x += (angle_target_deg.x - _angle_target_deg.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
-        _angle_target_deg.y += (angle_target_deg.y - _angle_target_deg.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
-        _angle_target_deg.z += (angle_target_deg.z - _angle_target_deg.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
-        _angle_error_deg.x += (angle_error_deg.x - _angle_error_deg.x) * get_filt_E_alpha(dt, _roll_filt_E_hz);
-        _angle_error_deg.y += (angle_error_deg.y - _angle_error_deg.y) * get_filt_E_alpha(dt, _pitch_filt_E_hz);
-        _angle_error_deg.z += (angle_error_deg.z - _angle_error_deg.z) * get_filt_E_alpha(dt, _yaw_filt_E_hz);
-        // _angle_target_deg.x = angle_target_deg.x; 
-        // _angle_target_deg.y = angle_target_deg.y; 
-        // _angle_target_deg.z = angle_target_deg.z; 
-        // _angle_error_deg.x = angle_target_deg.x - angle_meas_deg.x;
-        // _angle_error_deg.y = angle_target_deg.y - angle_meas_deg.y;
-        // _angle_error_deg.z = angle_target_deg.z - angle_meas_deg.z;
+        // Vector3f angle_error_deg = _angle_target_deg - angle_meas_deg;
+        // _angle_target_deg.x += (angle_target_deg.x - _angle_target_deg.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
+        // _angle_target_deg.y += (angle_target_deg.y - _angle_target_deg.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
+        // _angle_target_deg.z += (angle_target_deg.z - _angle_target_deg.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
+        // _angle_error_deg.x += (angle_error_deg.x - _angle_error_deg.x) * get_filt_E_alpha(dt, _roll_filt_E_hz);
+        // _angle_error_deg.y += (angle_error_deg.y - _angle_error_deg.y) * get_filt_E_alpha(dt, _pitch_filt_E_hz);
+        // _angle_error_deg.z += (angle_error_deg.z - _angle_error_deg.z) * get_filt_E_alpha(dt, _yaw_filt_E_hz);
+        _angle_target_deg.x = angle_target_deg.x; 
+        _angle_target_deg.y = angle_target_deg.y; 
+        _angle_target_deg.z = angle_target_deg.z; 
+        _angle_error_deg.x = angle_target_deg.x - angle_meas_deg.x;
+        _angle_error_deg.y = angle_target_deg.y - angle_meas_deg.y;
+        _angle_error_deg.z = angle_target_deg.z - angle_meas_deg.z;
         _angle_meas_deg = angle_meas_deg;
 
         // calculate derivative
@@ -280,6 +328,9 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
         _flags._reset_filter = false;
         _rate_target = rate_target;
         _rate_error = _rate_target - rate_meas;
+
+        // _rate_error.z = -_rate_error.z;
+
         _rate_target_derivative = Vector3f(0, 0, 0);
         _rate_meas_derivative_direct = Vector3f(0, 0, 0);
         // kalman filter initialization
@@ -305,7 +356,10 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     } else {
         Vector3f rate_target_last = _rate_target;
         Vector3f rate_meas_last = _rate_meas;
-        Vector3f rate_error = rate_target - rate_meas;
+        Vector3f rate_error = _rate_target - rate_meas;
+
+        // rate_error.z = -rate_error.z;
+
         _rate_target.x += (rate_target.x - _rate_target.x) * get_filt_T_alpha(dt, _roll_filt_T_hz);
         _rate_target.y += (rate_target.y - _rate_target.y) * get_filt_T_alpha(dt, _pitch_filt_T_hz);
         _rate_target.z += (rate_target.z - _rate_target.z) * get_filt_T_alpha(dt, _yaw_filt_T_hz);
@@ -338,6 +392,11 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
 
     // virtual control input, K*e
     Vector3f v = _K_INDI * _rate_error;
+
+    update_i(dt);
+
+    v += _integrator;
+
     _indi_info.v = v;
 
     // kf
@@ -423,6 +482,33 @@ Vector3f AP_INDI::get_kf_output_mat()
 {
     Vector3f output_mat(1, 0, 0);
     return output_mat;
+}
+
+void AP_INDI::update_i(float dt)
+{
+    if (is_positive(dt)) {
+        if (!is_zero(_roll_INDI_I)) {
+            _integrator.x += (_rate_error.x * _roll_INDI_I) * dt;
+            _integrator.x = constrain_float(_integrator.x, -_roll_imax, _roll_imax);
+        } else {
+            _integrator.x = 0.0f;
+        }
+        if (!is_zero(_pitch_INDI_I)) {
+            _integrator.y += (_rate_error.y * _pitch_INDI_I) * dt;
+            _integrator.y = constrain_float(_integrator.y, -_pitch_imax, _pitch_imax);
+        } else {
+            _integrator.y = 0.0f;
+        }
+        if (!is_zero(_roll_INDI_I)) {
+            _integrator.y += (_rate_error.z * _yaw_INDI_I) * dt;
+            _integrator.y = constrain_float(_integrator.y, -_yaw_imax, _yaw_imax);
+        } else {
+            _integrator.y = 0.0f;
+        }
+    } else {
+        _integrator = Vector3f(0.0f, 0.0f, 0.0f);
+    }
+    _indi_info.rate_I = _integrator;
 }
 
 // get_filt_T_alpha - get the target filter alpha

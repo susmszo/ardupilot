@@ -47,6 +47,12 @@ public:
         float roll_delta_limit_deg;
         float pitch_delta_limit_deg;
         float yaw_delta_limit_deg;
+        float roll_INDI_I;
+        float pitch_INDI_I;
+        float yaw_INDI_I;
+        float roll_imax;
+        float pitch_imax;
+        float yaw_imax;
     };
     
     // Constructor for INDI
@@ -57,10 +63,14 @@ public:
             float initial_roll_filt_T_hz, float initial_roll_filt_E_hz, float initial_roll_filt_D_hz, 
             float initial_pitch_filt_T_hz, float initial_pitch_filt_E_hz, float initial_pitch_filt_D_hz, 
             float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
-            float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg);
+            float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg,
+            float initial_roll_INDI_I, float initial_pitch_INDI_I, float initial_yaw_INDI_I,
+            float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax);
 
     CLASS_NO_COPY(AP_INDI);
 
+    Vector3f update_rate_P(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw, 
+                           int32_t angle_meas_roll, int32_t angle_meas_pitch, int32_t angle_meas_yaw);
     Vector3f update_rate(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw, 
                          int32_t angle_meas_roll, int32_t angle_meas_pitch, int32_t angle_meas_yaw, float dt);
     Vector3f update_delta_inc(Vector3f rate_control, Vector3f rate_meas, float dt, float airspeed, Plane_Shape &plane_shape);
@@ -72,10 +82,18 @@ public:
     Vector3f get_kf_noise_mat(float dt);
     Vector3f get_kf_output_mat();
 
+    void update_i(float dt);
+
     // reset_filter - input filter will be reset to the next value provided to set_input()
-    void reset_filter() {
+    void reset_filter() 
+    {
         _flags._reset_filter = true;
         _flags._reset_NDI = true;
+    }
+
+    void reset_I() 
+    {
+        _integrator = Vector3f(0.0f, 0.0f, 0.0f);
     }
 
     void set_delta(Vector3f delta)
@@ -165,6 +183,12 @@ protected:
     AP_Float _roll_delta_limit_deg;
     AP_Float _pitch_delta_limit_deg;
     AP_Float _yaw_delta_limit_deg;
+    AP_Float _roll_INDI_I;
+    AP_Float _pitch_INDI_I;
+    AP_Float _yaw_INDI_I;
+    AP_Float _roll_imax;
+    AP_Float _pitch_imax;
+    AP_Float _yaw_imax;
 
     Matrix3f _K_NDI;
     Matrix3f _K_INDI;
@@ -199,6 +223,8 @@ protected:
     KF_Update_Vars _kf_update_vars_R;
     KF_Update_Vars _kf_update_vars_P;
     KF_Update_Vars _kf_update_vars_Y;
+
+    Vector3f _integrator;
 
     float _I_x;
     float _I_y;
@@ -244,5 +270,11 @@ private:
     const float default_roll_delta_limit_deg;
     const float default_pitch_delta_limit_deg;
     const float default_yaw_delta_limit_deg;
+    const float default_roll_INDI_I;
+    const float default_pitch_INDI_I;
+    const float default_yaw_INDI_I;
+    const float default_roll_imax;
+    const float default_pitch_imax;
+    const float default_yaw_imax;
 
 };
