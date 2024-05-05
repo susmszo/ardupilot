@@ -167,6 +167,11 @@ const AP_Param::GroupInfo AP_INDI::var_info[] = {
     // @Description: INDI yaw controller PI Integral Maximum
     AP_GROUPINFO_FLAGS_DEFAULT_POINTER("YAW_IMAX", 29, AP_INDI, _yaw_imax, default_yaw_imax),
 
+    // @Param: ATT_P
+    // @DisplayName: P attitude controller gain
+    // @Description: P attitude controller gain
+    AP_GROUPINFO_FLAGS_DEFAULT_POINTER("ATT_P", 30, AP_INDI, _att_P, default_att_P),
+
     AP_GROUPEND
 };
 
@@ -180,7 +185,7 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
                  float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
                  float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg,
                  float initial_roll_INDI_I, float initial_pitch_INDI_I, float initial_yaw_INDI_I,
-                 float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax) :
+                 float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax, float initial_att_P) :
     default_roll_INDI_k(initial_roll_INDI_k),
     default_pitch_INDI_k(initial_pitch_INDI_k),
     default_yaw_INDI_k(initial_yaw_INDI_k),
@@ -210,7 +215,8 @@ AP_INDI::AP_INDI(float initial_roll_INDI_k, float initial_pitch_INDI_k, float in
     default_yaw_INDI_I(initial_yaw_INDI_I),
     default_roll_imax(initial_roll_imax),
     default_pitch_imax(initial_pitch_imax),
-    default_yaw_imax(initial_yaw_imax)
+    default_yaw_imax(initial_yaw_imax),
+    default_att_P(initial_att_P)
 {
     // load parameter values from eeprom
     AP_Param::setup_object_defaults(this, var_info);
@@ -229,7 +235,7 @@ Vector3f AP_INDI::update_rate_P(int32_t angle_target_roll, int32_t angle_target_
     Vector3f angle_target_deg = Vector3f(angle_target_roll * 0.01, angle_target_pitch * 0.01, angle_target_yaw * 0.01);
     Vector3f angle_meas_deg = Vector3f(angle_meas_roll * 0.01, angle_meas_pitch * 0.01, angle_meas_yaw * 0.01);
     Vector3f angle_error_deg = angle_target_deg - angle_meas_deg;
-    Vector3f rate_control_rad = angle_error_deg / 0.3f * DEG_TO_RAD;
+    Vector3f rate_control_rad = angle_error_deg / _att_P * DEG_TO_RAD;
     return rate_control_rad;
 }
 

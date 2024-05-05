@@ -283,11 +283,11 @@ Vector3f AP_INDIController::_get_rate_out_INDI(Vector3f rate_desired, float airs
 
 Vector3f AP_INDIController::_get_att_out_INDI(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw)
 {
-    // const float dt = AP::scheduler().get_loop_period_s();
+    const float dt = AP::scheduler().get_loop_period_s();
     const AP_AHRS &_ahrs = AP::ahrs();
-    // return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw, dt);
+    return rate_indi.update_rate(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw, dt);
     
-    return rate_indi.update_rate_P(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw);
+    // return rate_indi.update_rate_P(angle_target_roll, angle_target_pitch, angle_target_yaw, _ahrs.roll_sensor, _ahrs.pitch_sensor, angle_target_yaw);
 }
 
 /*
@@ -319,6 +319,9 @@ float AP_INDIController::_get_coordination_rate_offset_pitch(float &aspeed, bool
         // If no airspeed available use average of min and max
         aspeed = 0.5f*(float(aparm.airspeed_min) + float(aparm.airspeed_max));
     }
+
+    aspeed = constrain_float(aspeed, float(aparm.airspeed_min), float(aparm.airspeed_max));
+
     if (abs(_ahrs.pitch_sensor) > 7000) {
         // don't do turn coordination handling when at very high pitch angles
         rate_offset = 0;

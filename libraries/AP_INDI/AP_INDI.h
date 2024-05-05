@@ -53,6 +53,7 @@ public:
         float roll_imax;
         float pitch_imax;
         float yaw_imax;
+        float att_P;
     };
     
     // Constructor for INDI
@@ -65,7 +66,7 @@ public:
             float initial_yaw_filt_T_hz, float initial_yaw_filt_E_hz, float initial_yaw_filt_D_hz,
             float initial_roll_delta_limit_deg, float initial_pitch_delta_limit_deg, float initial_yaw_delta_limit_deg,
             float initial_roll_INDI_I, float initial_pitch_INDI_I, float initial_yaw_INDI_I,
-            float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax);
+            float initial_roll_imax, float initial_pitch_imax, float initial_yaw_imax, float initial_att_P);
 
     CLASS_NO_COPY(AP_INDI);
 
@@ -189,6 +190,7 @@ protected:
     AP_Float _roll_imax;
     AP_Float _pitch_imax;
     AP_Float _yaw_imax;
+    AP_Float _att_P;
 
     Matrix3f _K_NDI;
     Matrix3f _K_INDI;
@@ -276,5 +278,6 @@ private:
     const float default_roll_imax;
     const float default_pitch_imax;
     const float default_yaw_imax;
+    const float default_att_P;
 
 };
