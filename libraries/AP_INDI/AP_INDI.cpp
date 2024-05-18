@@ -406,15 +406,15 @@ Vector3f AP_INDI::update_delta_inc(Vector3f rate_target, Vector3f rate_meas, flo
     _indi_info.v = v;
 
     // kf
-    _kf_update_vars_R = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_R.X_hat, rate_meas.x,
-                                             _kf_update_vars_R.P_cov, _roll_KF_Q, _roll_KF_R, dt);
-    _kf_update_vars_P = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_P.X_hat, rate_meas.y,
-                                             _kf_update_vars_P.P_cov, _pitch_KF_Q, _pitch_KF_R, dt);
-    _kf_update_vars_Y = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_Y.X_hat, rate_meas.z,
-                                             _kf_update_vars_Y.P_cov, _yaw_KF_Q, _yaw_KF_R, dt);
-    _rate_meas_derivative.x = _kf_update_vars_R.X_hat.y;
-    _rate_meas_derivative.y = _kf_update_vars_P.X_hat.y;
-    _rate_meas_derivative.z = _kf_update_vars_Y.X_hat.y;
+    // _kf_update_vars_R = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_R.X_hat, rate_meas.x,
+    //                                          _kf_update_vars_R.P_cov, _roll_KF_Q, _roll_KF_R, dt);
+    // _kf_update_vars_P = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_P.X_hat, rate_meas.y,
+    //                                          _kf_update_vars_P.P_cov, _pitch_KF_Q, _pitch_KF_R, dt);
+    // _kf_update_vars_Y = update_kalman_filter(_kf_state_mat, _kf_noise_mat, _kf_output_mat, _kf_update_vars_Y.X_hat, rate_meas.z,
+    //                                          _kf_update_vars_Y.P_cov, _yaw_KF_Q, _yaw_KF_R, dt);
+    // _rate_meas_derivative.x = _kf_update_vars_R.X_hat.y;
+    // _rate_meas_derivative.y = _kf_update_vars_P.X_hat.y;
+    // _rate_meas_derivative.z = _kf_update_vars_Y.X_hat.y;
 
     // v += (_rate_target_derivative - _rate_meas_derivative);
     v += (_rate_target_derivative - _rate_meas_derivative_direct);
