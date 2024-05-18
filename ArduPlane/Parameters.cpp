@@ -1410,6 +1410,12 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
     // @User: Standard
     AP_GROUPINFO("INDI_T_YAW_FLTM", 59, ParametersG2, yaw_filter_ang_acc_hz, 20),
 
+    // @Param: SIM_FLAG
+    // @DisplayName: simulation flag for deflection direction
+    // @Description: 1 for sim, 0 for real flight
+    // @User: Standard
+    AP_GROUPINFO("SIM_FLAG", 60, ParametersG2, sim_flag, 1),
+
     AP_GROUPEND
 };
 

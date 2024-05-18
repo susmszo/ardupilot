@@ -270,8 +270,9 @@ Vector3f AP_INDIController::_get_rate_out_INDI(Vector3f rate_desired, float airs
     // in rad
     Vector3f delta_inc = rate_indi.update_delta_inc(rate_desired, rate_meas, dt, airspeed, plane_shape);
 
-    delta_inc.x = -delta_inc.x;
-    // delta_inc.x = 0;
+    if (g2.sim_flag) {
+        delta_inc.x = -delta_inc.x;
+    }
     delta_inc.y = -delta_inc.y;
     delta_inc.z = 0;
     // delta_inc.z = -delta_inc.z;
