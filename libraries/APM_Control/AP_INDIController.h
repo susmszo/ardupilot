@@ -51,9 +51,11 @@ private:
     AP_Float _roll_ff_to_pitch;
     AP_Float _yaw_ff;
 
-    AP_INDI rate_indi{5, 5, 5, 10, 10, 10, 10, 0.1, 10, 0.1, 10, 0.1, 3, 0, 10, 3, 0, 10, 3, 0, 10, 0, 0, 0, 0, 0, 0, 0.67, 0.67, 0.67, 0.3};
+    AP_INDI rate_indi{0.08, 0.04, 0, 2, 2, 2, 10, 0.1, 10, 0.1, 10, 0.1, 3, 0, 0, 3, 0, 0, 3, 0, 0, 0, 0, 0, 0.15, 0.15, 0, 0.67, 0.67, 0.67, 0.5};
 
     AP_INDIInfo _indi_info;
+
+    AP_Int8 _sim_flag;
 
     Vector3f _get_att_out_INDI(int32_t angle_target_roll, int32_t angle_target_pitch, int32_t angle_target_yaw);
     Vector3f _get_rate_out_INDI(Vector3f rate_desired, float airspeed, Plane_Shape &plane_shape);

@@ -610,8 +610,6 @@ public:
     AP_Float pitch_filter_ang_acc_hz;
     AP_Float yaw_filter_ang_acc_hz;
 
-    bool sim_flag;
-
     // just to make compilation easier when all things are compiled out...
     uint8_t unused_integer;
 };

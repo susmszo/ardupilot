@@ -17,61 +17,61 @@ void Plane::plane_shape_update()
     plane_shape.c = g2.wing_chord;
 }
 
-void Plane::angular_acc_estimator()
-{
-    const AP_AHRS &_ahrs = AP::ahrs();
-    Vector3f rate_meas = _ahrs.get_gyro();
+// void Plane::angular_acc_estimator()
+// {
+//     const AP_AHRS &_ahrs = AP::ahrs();
+//     Vector3f rate_meas = _ahrs.get_gyro();
 
-    const float dt = AP::scheduler().get_loop_period_s();
+//     const float dt = AP::scheduler().get_loop_period_s();
 
-    if (kf_reset) {
-        kf_reset = false;
-        kf_state_mat = Matrix3f(1, dt, powf((dt / 2), 2), 0, 1, (dt / 2), 0, 0, 1);
-        kf_noise_mat = Vector3f(powf((dt / 2), 2), (dt / 2), 1);
-        kf_output_mat = Vector3f(1, 0, 0);
-        kf_vars_R.X_hat = Vector3f(rate_meas.x, 0.0f, 0.0f);
-        kf_vars_P.X_hat = Vector3f(rate_meas.y, 0.0f, 0.0f);
-        kf_vars_Y.X_hat = Vector3f(rate_meas.z, 0.0f, 0.0f);
-        iden.identity();
-        kf_vars_R.P_cov = iden;
-        kf_vars_P.P_cov = iden;
-        kf_vars_Y.P_cov = iden;
-        ang_acc_direct = Vector3f(0, 0, 0);
-        ang_acc_low_pass = Vector3f(0, 0 ,0);
-        rate_meas_last - Vector3f(0, 0, 0);
-        Q_roll = g2.kf_roll_Q;
-        Q_pitch = g2.kf_pitch_Q;
-        Q_yaw = g2.kf_yaw_Q;
-        R_roll = g2.kf_roll_R;
-        R_pitch = g2.kf_pitch_R;
-        R_yaw = g2.kf_yaw_R;
-        roll_aac_filt_hz = g2.roll_filter_ang_acc_hz;
-        pitch_aac_filt_hz = g2.pitch_filter_ang_acc_hz;
-        yaw_aac_filt_hz = g2.yaw_filter_ang_acc_hz;
-    } else {
-        kf_vars_R = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_R.X_hat, rate_meas.x, kf_vars_R.P_cov, Q_roll, R_roll, dt);
-        kf_vars_P = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_P.X_hat, rate_meas.y, kf_vars_P.P_cov, Q_pitch, R_pitch, dt);
-        kf_vars_Y = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_Y.X_hat, rate_meas.z, kf_vars_Y.P_cov, Q_yaw, R_yaw, dt);
-        ang_acc_direct = (rate_meas - rate_meas_last) / dt;
-        ang_acc_low_pass.x += (ang_acc_direct.x - ang_acc_low_pass.x) * calc_lowpass_alpha_dt(dt, roll_aac_filt_hz);
-        ang_acc_low_pass.y += (ang_acc_direct.y - ang_acc_low_pass.y) * calc_lowpass_alpha_dt(dt, pitch_aac_filt_hz);
-        ang_acc_low_pass.z += (ang_acc_direct.z - ang_acc_low_pass.z) * calc_lowpass_alpha_dt(dt, yaw_aac_filt_hz);
-        rate_meas_last = rate_meas;
-    }
-}
+//     if (kf_reset) {
+//         kf_reset = false;
+//         kf_state_mat = Matrix3f(1, dt, powf((dt / 2), 2), 0, 1, (dt / 2), 0, 0, 1);
+//         kf_noise_mat = Vector3f(powf((dt / 2), 2), (dt / 2), 1);
+//         kf_output_mat = Vector3f(1, 0, 0);
+//         kf_vars_R.X_hat = Vector3f(rate_meas.x, 0.0f, 0.0f);
+//         kf_vars_P.X_hat = Vector3f(rate_meas.y, 0.0f, 0.0f);
+//         kf_vars_Y.X_hat = Vector3f(rate_meas.z, 0.0f, 0.0f);
+//         iden.identity();
+//         kf_vars_R.P_cov = iden;
+//         kf_vars_P.P_cov = iden;
+//         kf_vars_Y.P_cov = iden;
+//         ang_acc_direct = Vector3f(0, 0, 0);
+//         ang_acc_low_pass = Vector3f(0, 0 ,0);
+//         rate_meas_last - Vector3f(0, 0, 0);
+//         Q_roll = g2.kf_roll_Q;
+//         Q_pitch = g2.kf_pitch_Q;
+//         Q_yaw = g2.kf_yaw_Q;
+//         R_roll = g2.kf_roll_R;
+//         R_pitch = g2.kf_pitch_R;
+//         R_yaw = g2.kf_yaw_R;
+//         roll_aac_filt_hz = g2.roll_filter_ang_acc_hz;
+//         pitch_aac_filt_hz = g2.pitch_filter_ang_acc_hz;
+//         yaw_aac_filt_hz = g2.yaw_filter_ang_acc_hz;
+//     } else {
+//         kf_vars_R = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_R.X_hat, rate_meas.x, kf_vars_R.P_cov, Q_roll, R_roll, dt);
+//         kf_vars_P = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_P.X_hat, rate_meas.y, kf_vars_P.P_cov, Q_pitch, R_pitch, dt);
+//         kf_vars_Y = kalman_filter(kf_state_mat, kf_noise_mat, kf_output_mat, kf_vars_Y.X_hat, rate_meas.z, kf_vars_Y.P_cov, Q_yaw, R_yaw, dt);
+//         ang_acc_direct = (rate_meas - rate_meas_last) / dt;
+//         ang_acc_low_pass.x += (ang_acc_direct.x - ang_acc_low_pass.x) * calc_lowpass_alpha_dt(dt, roll_aac_filt_hz);
+//         ang_acc_low_pass.y += (ang_acc_direct.y - ang_acc_low_pass.y) * calc_lowpass_alpha_dt(dt, pitch_aac_filt_hz);
+//         ang_acc_low_pass.z += (ang_acc_direct.z - ang_acc_low_pass.z) * calc_lowpass_alpha_dt(dt, yaw_aac_filt_hz);
+//         rate_meas_last = rate_meas;
+//     }
+// }
 
-KF_Update_Vars Plane::kalman_filter(Matrix3f A, Vector3f F, Vector3f C, Vector3f X, float Y, Matrix3f P, float Q, float R, float dt)
-{
-    Matrix3f P_hat = A * P * A.transposed() + (F * Q).mul_rowcol(F);
-    Vector3f X_hat = A * X;
-    Vector3f kf_gain = P_hat * C / (C.row_times_mat(P_hat) * C + R);
-    P_hat = (iden - kf_gain.mul_rowcol(C)) * P_hat;
-    X_hat = X_hat + kf_gain * (Y - C * X_hat);
-    KF_Update_Vars kf_update_vars;
-    kf_update_vars.P_cov = P_hat;
-    kf_update_vars.X_hat = X_hat;
-    return kf_update_vars;
-}
+// KF_Update_Vars Plane::kalman_filter(Matrix3f A, Vector3f F, Vector3f C, Vector3f X, float Y, Matrix3f P, float Q, float R, float dt)
+// {
+//     Matrix3f P_hat = A * P * A.transposed() + (F * Q).mul_rowcol(F);
+//     Vector3f X_hat = A * X;
+//     Vector3f kf_gain = P_hat * C / (C.row_times_mat(P_hat) * C + R);
+//     P_hat = (iden - kf_gain.mul_rowcol(C)) * P_hat;
+//     X_hat = X_hat + kf_gain * (Y - C * X_hat);
+//     KF_Update_Vars kf_update_vars;
+//     kf_update_vars.P_cov = P_hat;
+//     kf_update_vars.X_hat = X_hat;
+//     return kf_update_vars;
+// }
 
 /*
   calculate speed scaling number for control surfaces. This is applied
