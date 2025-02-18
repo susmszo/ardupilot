@@ -48,6 +48,21 @@ void AP_AHRS::Write_AOA_SSA(void) const
     AP::logger().WriteBlock(&aoa_ssa, sizeof(aoa_ssa));
 }
 
+void AP_AHRS::Write_AOA_VEL(void) const
+{
+    const struct log_AOA_VEL aoa_vel{
+        LOG_PACKET_HEADER_INIT(LOG_AOA_VEL_MSG),
+        time_us         : AP_HAL::micros64(),
+        aoa_vel_x       : _AOA_vel.x,
+        aoa_vel_y       : _AOA_vel.y,
+        aoa_vel_z       : _AOA_vel.z,
+        aoa             : _AOA,
+        ssa             : _SSA
+    };
+
+    AP::logger().WriteBlock(&aoa_vel, sizeof(aoa_vel));
+}
+
 // Write an attitude packet
 void AP_AHRS::Write_Attitude(const Vector3f &targets) const
 {

@@ -5,6 +5,7 @@
 #define LOG_IDS_FROM_AHRS \
     LOG_AHR2_MSG, \
     LOG_AOA_SSA_MSG, \
+    LOG_AOA_VEL_MSG, \
     LOG_ATTITUDE_MSG, \
     LOG_ORGN_MSG, \
     LOG_POS_MSG, \
@@ -46,6 +47,16 @@ struct PACKED log_AOA_SSA {
     uint64_t time_us;
     float AOA;
     float SSA;
+};
+
+struct PACKED log_AOA_VEL {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    float aoa_vel_x;
+    float aoa_vel_y;
+    float aoa_vel_z;
+    float aoa;
+    float ssa;
 };
 
 // @LoggerMessage: ATT
@@ -198,6 +209,8 @@ struct PACKED log_ATSC {
         "AHR2","QccCfLLffff","TimeUS,Roll,Pitch,Yaw,Alt,Lat,Lng,Q1,Q2,Q3,Q4","sddhmDU----", "FBBB0GG----" , true }, \
     { LOG_AOA_SSA_MSG, sizeof(log_AOA_SSA), \
         "AOA", "Qff", "TimeUS,AOA,SSA", "sdd", "F00" , true }, \
+    { LOG_AOA_VEL_MSG, sizeof(log_AOA_VEL), \
+        "AOAV", "Qfffff", "TimeUS,x,y,z,aoa,ssa", "snnndd", "F00000" , true }, \
     { LOG_ATTITUDE_MSG, sizeof(log_Attitude),\
         "ATT", "QccccCCCCB", "TimeUS,DesRoll,Roll,DesPitch,Pitch,DesYaw,Yaw,ErrRP,ErrYaw,AEKF", "sddddhhdh-", "FBBBBBBBB-" , true }, \
     { LOG_ORGN_MSG, sizeof(log_ORGN), \

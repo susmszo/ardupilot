@@ -470,6 +470,7 @@ public:
 
     // write AOA and SSA information to dataflash logs:
     void Write_AOA_SSA(void) const;
+    void Write_AOA_VEL(void) const;
 
     // return AOA
     float getAOA(void) const { return _AOA; }
@@ -792,6 +793,7 @@ private:
      * private AOA and SSA-related state and methods
      */
     float _AOA, _SSA;
+    Vector3f _AOA_vel;
     uint32_t _last_AOA_update_ms;
     void update_AOA_SSA(void);
 

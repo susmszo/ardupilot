@@ -212,6 +212,8 @@ void AP_AHRS::update_AOA_SSA(void)
     aoa_velocity = aoa_velocity - aoa_wind;
     const float vel_len = aoa_velocity.length();
 
+    _AOA_vel = aoa_velocity;
+
     // do not calculate if speed is too low
     if (vel_len < 2.0) {
         _AOA = 0;

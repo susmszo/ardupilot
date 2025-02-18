@@ -181,7 +181,7 @@ void ModeAuto::run()
         reset_controllers();
 
     } else {
-        // // Normal flight, run base class
+        // Normal flight, run base class
         // Mode::run();
 
         // INDI control
